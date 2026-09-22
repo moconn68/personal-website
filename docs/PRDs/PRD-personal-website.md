@@ -1,7 +1,7 @@
 # PRD: Personal Website — v1 Professional Identity Hub
 
 > **Upstream source:** [vision-personal-website.md](../vision/vision-personal-website.md)  
-> **PRD version:** 1.1  
+> **PRD version:** 1.3  
 > **Date:** 2026-09-21  
 > **Author:** Product Manager (AI SDLC)
 
@@ -61,7 +61,7 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 - Zero-tracking default. Any later analytics is an explicit, privacy-conscious choice.
 
 ### 4.6 Extensibility Promise (Architectural)
-- Future sections (Projects, Blog, Now, Uses) must drop in as **"a typed content file plus one registration entry"** without touching core navigation, layout, or sitemap code.
+- Future sections (Projects, Blog, Now, Uses) must drop in as **"a typed content file (self-registering via frontmatter) plus a per-section template component"** without touching core navigation, layout, sitemap, or schema code. (Per v1.3 wording — see REG-6.)
 - Registry coverage is **capped** at exactly those four known future sections.
 
 ### 4.7 Typed Content Model + Structured Data
@@ -115,7 +115,7 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 | REG-3 | Navigation derives from registry entries — no hardcoded nav links | MUST | — |
 | REG-4 | Layout shells derive from registry — no per-section layout wiring | MUST | — |
 | REG-5 | Sitemap derives from registry entries | MUST | — |
-| REG-6 | Adding a new section = (a) write a typed content file + (b) add one registry entry. Zero changes to nav/layout/sitemap code. | MUST | This is the extensibility promise |
+| REG-6 | Adding a new section = (a) write a typed content file — **which is itself the registration entry** (frontmatter `slug`/`order`/`navLabel`/`template` drives the registry; there is no separate registration file) — + (b) add a per-section template component. Zero changes to nav/layout/sitemap/schema code. | MUST | Per-v1.3 wording (aligned with implemented mechanism in tech design §4.2/§5.1 and verified by US-9/T-22: a stub "Now" section = `now.md` + `NowSection.astro`, two files, zero core edits) |
 | REG-7 | Registry coverage capped at four future sections: Projects, Blog, Now, Uses | MUST | No arbitrary section support |
 
 ### 5.5 Structured Data + SEO
@@ -198,7 +198,7 @@ Derived from the three target personas in the vision document:
 | **Résumé download ≤ 1 click** | From the résumé landing page, PDF download reachable in one click/tap | Hiring Manager | Manual inspection on mobile |
 | **ATS-ready PDF** | Supplied PDF is text-extractable (verified once when PDF is added to repo) | Hiring Manager | Upload to ATS tool (e.g., Jobscan) at content-add time |
 | **About page memorability** | Peer describes the owner as a person (not just a professional) after reading | Curious Peer | Informal test: give URL, ask "what do you remember?" |
-| **Extensibility verified** | Adding a new section (e.g., "Now") requires exactly 2 file changes: content file + registry entry. Zero changes to nav/layout/sitemap code. | Engineering quality | Manual test: add a stub section, confirm it appears in nav and sitemap without touching core files |
+| **Extensibility verified** | Adding a new section requires exactly 2 file changes: a typed content file (self-registering via frontmatter) + a template component. Zero changes to nav/layout/sitemap/schema code. | Engineering quality | Manual test: add a stub "Now" section (`now.md` + `NowSection.astro`), confirm it appears in nav and sitemap without touching core files |
 
 ---
 
@@ -242,7 +242,7 @@ Derived from the three target personas in the vision document:
 ### Section Registry
 | ID | Story | Priority | Acceptance Criteria |
 |---|---|---|---|
-| US-9 | As a developer, I want to add a new section (e.g., "Now") by writing a content file + adding one registry entry, without touching nav/layout/sitemap code | P0 | Manual test: add stub "Now" section → appears in nav and sitemap; zero changes to core files |
+| US-9 | As a developer, I want to add a new section (e.g., "Now") by writing a content file + a template component, without touching nav/layout/sitemap/schema code | P0 | Manual test: add stub "Now" section (`now.md` + `NowSection.astro`) → appears in nav and sitemap; zero changes to nav/layout/sitemap/route/schema files. (Section registration is frontmatter-driven per REG-6 v1.3 wording; the section's template enum value `now` is pre-included.) |
 | US-10 | As a developer, I want the navigation to derive from the registry so that nav always matches published sections | P0 | Nav links are generated from registry; no hardcoded links |
 | US-11 | As a developer, I want the sitemap to include all registered sections automatically | P0 | `sitemap.xml` includes every registered section URL |
 
@@ -286,6 +286,7 @@ Derived from the three target personas in the vision document:
 | 1.0 | 2026-09-18 | PM (AI SDLC) | Initial PRD from vision doc |
 | 1.1 | 2026-09-21 | PM (AI SDLC) | Resolved OQ-1–OQ-6: résumé → static PDF link, parrotlet as first case study, SEO strengthened, staleness dropped, subdomain `mattoconn` |
 | 1.2 | 2026-09-21 | Project Planner | Folded technical research into PRD: Cloudflare Pages decided (DEP-1), AI-crawler robots policy (SEO-4), canonical + noindex duplicate-host policy (SEO-11/12), PDF cache headers (DEP-7), Astro 7 Content Layer API nomenclature (§9) |
+| 1.3 | 2026-09-21 | Project Planner | Extensibility wording aligned with implemented mechanism (REG-6/US-9/§8): the content file *is* the registration entry (frontmatter drives the registry); a per-section template component is also required. Zero nav/layout/sitemap/schema changes unchanged. |
 
 ---
 
