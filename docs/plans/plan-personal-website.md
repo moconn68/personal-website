@@ -75,4 +75,4 @@ Progress mirror — the `orchestrator` appends one row per completed ticket.
 
 | slug | T-ID | date | commit | notes |
 |---|---|---|---|---|
-| personal-website | | | | |
+| personal-website | T-1 | 2026-09-22 | 8228acd | Astro ^7.3.3 + TS strict scaffold at repo root; baseline static build ~1.05–1.2s; review Approve; QA Pass (report: docs/qa/qa-report-personal-website-T-1.md) |

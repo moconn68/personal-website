@@ -30,7 +30,7 @@ The site ships structured data (Person JSON-LD on Home, ProfilePage JSON-LD on R
 
 ## Part A — The Tasking Checklist (the contract)
 
-- [ ] **T-1: Scaffold Astro 7 + TS strict + baseline static build** — `npm create astro@latest`, pin Astro 7.x, TypeScript strict, add `@astrojs/sitemap` + `zod`, verify the empty site builds to static `dist/`. (DEP-3, NF-6 | deps: none | M | astro/)
+- [x] **T-1: Scaffold Astro 7 + TS strict + baseline static build** — `npm create astro@latest`, pin Astro 7.x, TypeScript strict, add `@astrojs/sitemap` + `zod`, verify the empty site builds to static `dist/`. (DEP-3, NF-6 | deps: none | M | astro/)
 - [ ] **T-2: Sections content schema (glob loader + Zod, closed template enum)** — `src/content.config.ts` defines the `sections` collection; template enum lives in shared `src/config/templates.ts` (pre-includes the four capped future templates; rejects anything else). (REG-1, REG-7 | deps: T-1 | S | content/)
 - [ ] **T-3: getSections() helper + typed section content skeletons** — `src/config/sections.ts` registration helper (sorted by `order`) and `home`/`resume`/`about` content skeleton files with `HUMAN COPY` placeholders. (REG-2, REG-6 | deps: T-2 | M | content/)
 - [ ] **T-4: Site URL config (PUBLIC_SITE_URL, default `https://mattoconn.pages.dev`)** — single source of truth driving `astro.config` `site`, canonical URLs, robots `Sitemap:`, and JSON-LD. (SEO-11, DEP-5 | deps: T-1 | S | astro/)
@@ -74,6 +74,7 @@ The site ships structured data (Person JSON-LD on Home, ProfilePage JSON-LD on R
 - **Suggested skills:** `typescript`, `astro`, `npm`
 - **Verification command(s):** `npm run build && npx astro check && ls dist/`
 - **Notes:** Implements PRD §9 framework row (Astro 7.x + TS) and NF-6/DEP-3 (static-only output; no server runtime). Netlify/Vercel/Cloudflare all read `dist/` as the output dir — kept as the canonical output. Font/template/styling tooling is added later (T-17) so this ticket stays small.
+- **Execution deviations (T-1, commit `8228acd`):** (1) `engines.node` is `>=22.12.0` (Astro 7.3.3's declared floor) rather than the tech design §10.2 example `>=20` — truthful to the framework and consonant with design §2's "22 LTS recommended"; the design example should be aligned when T-18 rewrites the scripts block. (2) `AGENTS.md` + `CLAUDE.md` (symlink) are committed as scaffold-adjacent agent tooling describing the repo's `astro dev --background` convention; they are unowned by any ticket (design §12.5) and flagged for the later unowned-files audit. Both reviewed as acceptable by reviewer + QA.
 
 #### T-2: Sections content schema (glob loader + Zod, closed template enum)
 
