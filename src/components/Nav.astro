@@ -1,0 +1,96 @@
+---
+// T-5: Registry-driven navigation. Every link, its label, and its order derive
+// solely from the sections registry (src/config/sections.ts): getSections()
+// returns entries sorted by `order` (home first), and sectionPath() is the
+// single slug→URL mapping (home → '/', others → '/{slug}/' with trailing
+// slash) — so nav hrefs are byte-identical with canonical/sitemap URLs.
+// Zero hardcoded section paths: removing a registry entry removes its nav link.
+// Zero client JS: no executable tags, no event-handler attributes, no style=
+// attributes, no inline styles — all styling lives in the scoped block below.
+import { getSections, sectionPath, type SectionEntry } from '../config/sections';
+
+const sections: SectionEntry[] = await getSections();
+const pathname = Astro.url.pathname;
+---
+
+<nav aria-label="Main">
+  <ul>
+    {
+      sections.map((entry) => {
+        const href = sectionPath(entry);
+        const isActive = pathname === href;
+        return (
+          <li>
+            <a
+              href={href}
+              class:list={{ active: isActive }}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {entry.data.navLabel}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>
+
+<style>
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1, 0.25rem); /* mobile: single-column stack, left-aligned */
+  }
+
+  li {
+    margin: 0;
+    padding: 0;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min, 44px);
+    min-width: var(--touch-min, 44px);
+    padding-inline: var(--space-2, 0.5rem);
+    font-weight: 600; /* nav weight per UI spec §2.2 */
+    color: var(--color-text, #18181b);
+    text-decoration: underline; /* link affordance is never color alone */
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    color: var(--color-accent-hover, #172554);
+    text-decoration-thickness: 2px;
+  }
+
+  /* Visible focus ring for keyboard and pointer input; never outline: none. */
+  a:focus,
+  a:focus-visible {
+    outline: 2px solid var(--color-accent, #1e40af);
+    outline-offset: 2px;
+  }
+
+  /* Active state: accent color + underline together, never color alone. */
+  a.active {
+    color: var(--color-accent, #1e40af);
+    text-decoration: none;
+    border-bottom: 2px solid var(--color-accent, #1e40af);
+  }
+
+  /* desktop: inline horizontal row spanning full width — brand (home) on the
+     left, remaining items on the right (UI spec §4.1). Registry order puts
+     home first; space-between pushes the rest to the right edge. */
+  @media (min-width: 768px) {
+    ul {
+      flex-direction: row;
+      justify-content: space-between;
+      gap: var(--space-4, 1rem);
+    }
+  }
+</style>
