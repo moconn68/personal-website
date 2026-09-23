@@ -1,0 +1,88 @@
+---
+// T-6: Shared page chrome for every route. Semantic landmarks
+// (<header>/<nav>/<main>/<footer> — SEO-9, NF-3), a named head slot for
+// per-route SEO content (filled by T-12's Seo component), and a default body
+// slot carrying the section template. The footer copyright name is read from
+// the registry home entry — never hardcoded. Zero client JS: no executable
+// script tags, no event-handler attributes, no style= attributes. Styling
+// lives in the scoped block below plus src/assets/styles/global.css tokens.
+// No `path` prop, no props to Nav — Nav reads Astro.url.pathname itself (T-5).
+import Nav from '../components/Nav.astro';
+import { getSections } from '../config/sections';
+import '../assets/styles/global.css';
+
+const sections = await getSections();
+const home = sections.find((entry) => entry.data.slug === 'home');
+if (!home) {
+  throw new Error('Registry must contain a "home" section — the layout footer copyright derives from it.');
+}
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Per-route <title>/meta/canonical land here via the head slot (T-12's Seo). -->
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <!-- Landmarks (SEO-9, NF-3): <header> chrome, <nav> emitted by Nav.astro (T-5), <main id="main"> slot, <footer> -->
+    <header>
+      <Nav />
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer>
+      <p>© {year} {home.data.title}</p>
+    </footer>
+  </body>
+</html>
+
+<style>
+  /* Skip link (UI spec §4.3): visually hidden first element in <body>,
+     revealed on focus at the top-left of the viewport (WCAG 2.4.1). */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    z-index: 999;
+    padding: var(--space-2, 0.5rem) var(--space-4, 1rem);
+    background: var(--color-surface, #ffffff);
+    color: var(--color-accent, #1e40af);
+    font-weight: 600;
+    border-radius: 8px;
+  }
+
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    left: var(--gutter, 1.25rem);
+    top: var(--gutter, 1.25rem);
+  }
+
+  /* Container constraint (§6.4 / UI §4.5): centered at --container with
+     gutter-side padding; 375px floor with no horizontal scroll (NF-2). */
+  header,
+  main,
+  footer {
+    max-width: var(--container, 48rem);
+    margin-inline: auto;
+    padding-inline: var(--gutter, 1.25rem);
+  }
+
+  /* Footer (UI §4.2): one muted small line, --space-6 above / --space-4 below,
+     left-aligned to match content alignment. */
+  footer {
+    padding-block-start: var(--space-6, 2rem);
+    padding-block-end: var(--space-4, 1rem);
+  }
+
+  footer p {
+    margin: 0;
+    font-size: var(--fs-small, 0.875rem);
+    color: var(--color-muted, #52525b);
+  }
+</style>
