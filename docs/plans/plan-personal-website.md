@@ -76,3 +76,4 @@ Progress mirror — the `orchestrator` appends one row per completed ticket.
 | slug | T-ID | date | commit | notes |
 |---|---|---|---|---|
 | personal-website | T-1 | 2026-09-22 | 8228acd | Astro ^7.3.3 + TS strict scaffold at repo root; baseline static build ~1.05–1.2s; review Approve; QA Pass (report: docs/qa/qa-report-personal-website-T-1.md) |
+| personal-website | T-2 | 2026-09-22 | fb871c4 | Sections content schema: glob loader + Zod (design §4.3), closed template enum in shared `src/config/templates.ts` (7 values: home/resume/about/projects/blog/now/uses; `error` excluded per §4.2); negative tests for bogus/error/description>160 all rejected; review Approve; QA Pass (report: docs/qa/qa-report-personal-website-T-2.md); docs commit 07c9a19 marks T-2 complete |
