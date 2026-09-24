@@ -1,0 +1,49 @@
+---
+// T-7: Registry-driven route with template dispatch (design §5.1, §5.2).
+// One optional catch-all `[...slug]` generates one route per registered
+// section: home → '/' (`params: { slug: undefined }`), others → '/{slug}/'
+// (trailingSlash: 'always' — the canonical form shared by nav/canonical/
+// sitemap). Template dispatch is glob-driven:
+//   import.meta.glob('../templates/*.astro', { eager: true })
+// keyed by templateToComponentName(template) (PascalCase + `Section` suffix).
+// A registered section whose template component is missing FAILS the build —
+// loud and typed; a registry pointing at nothing is a programming error, not
+// a 404 (REG-6). A new section therefore needs zero changes to this file — the
+// glob picks up new template components automatically (T-22 proves it).
+// Every template receives entry + the full ordered registry (design §5.1
+// contract). Head slot/Seo land at T-12; no `path` prop to BaseLayout (T-6
+// deviation — Nav reads Astro.url.pathname itself).
+import { getSections, type SectionEntry } from '../config/sections';
+import { templateToComponentName } from '../config/templates';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const entries = await getSections();
+  return entries.map((entry) => ({
+    params: { slug: entry.data.slug === 'home' ? undefined : entry.data.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: SectionEntry };
+const sections = await getSections();
+
+// Template dispatch via eager glob keyed by templateToComponentName(template).
+// The `{ default: any }` cast is the design §5.1 sanction — Astro's component
+// factory type is not exposed via a public exports path. A registered section
+// whose component is missing throws here → the build fails loudly.
+const templates = import.meta.glob('../templates/*.astro', { eager: true }) as Record<
+  string,
+  { default: any }
+>;
+const moduleKey = `../templates/${templateToComponentName(entry.data.template)}.astro`;
+const Module = templates[moduleKey];
+if (!Module) {
+  throw new Error(`Missing template component for "${entry.data.template}" — expected ${moduleKey}.`);
+}
+const SectionTemplate = Module.default;
+---
+
+<BaseLayout>
+  <SectionTemplate entry={entry} sections={sections} />
+</BaseLayout>
