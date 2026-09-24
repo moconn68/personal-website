@@ -11,11 +11,12 @@
 // a 404 (REG-6). A new section therefore needs zero changes to this file — the
 // glob picks up new template components automatically (T-22 proves it).
 // Every template receives entry + the full ordered registry (design §5.1
-// contract). Head slot/Seo land at T-12; no `path` prop to BaseLayout (T-6
-// deviation — Nav reads Astro.url.pathname itself).
-import { getSections, type SectionEntry } from '../config/sections';
+// contract). No `path` prop to BaseLayout (T-6 deviation — Nav reads
+// Astro.url.pathname itself).
+import { getSections, sectionPath, type SectionEntry } from '../config/sections';
 import { templateToComponentName } from '../config/templates';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Seo from '../components/Seo.astro';
 
 export async function getStaticPaths() {
   const entries = await getSections();
@@ -27,6 +28,13 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props as { entry: SectionEntry };
 const sections = await getSections();
+const home = sections.find((section) => section.data.slug === 'home');
+if (!home) throw new Error('Registry must contain a "home" section.');
+
+// Title pattern per design §5.2 / SEO-6: home → home.title; others →
+// `{home.title} — {entry.data.title}` (mechanical off the registry).
+const title = entry.data.slug === 'home' ? entry.data.title : `${home.data.title} — ${entry.data.title}`;
+const currentPath = sectionPath(entry);
 
 // Template dispatch via eager glob keyed by templateToComponentName(template).
 // The `{ default: any }` cast is the design §5.1 sanction — Astro's component
@@ -45,5 +53,8 @@ const SectionTemplate = Module.default;
 ---
 
 <BaseLayout>
+  <Fragment slot="head">
+    <Seo title={title} description={entry.data.description} path={currentPath} />
+  </Fragment>
   <SectionTemplate entry={entry} sections={sections} />
 </BaseLayout>
