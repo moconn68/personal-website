@@ -10,6 +10,7 @@
     "build": "astro build && node scripts/gen-headers.mjs",
     "preview": "astro preview",
     "check": "astro check",
+    "verify": "node scripts/verify-static.mjs",
     "astro": "astro",
     "fonts:subset": "node scripts/subset-fonts.mjs"
   },
