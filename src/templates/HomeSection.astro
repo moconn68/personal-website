@@ -1,0 +1,159 @@
+---
+// T-8: Home scan-page template (UI §3.1). Six-second identity parse: the name
+// as <h1>, role-in-domain + primary stack (rendered from the section's markdown
+// body) above the fold on a 375px viewport, a condensed muted proof line from
+// `data.description`, and a hunt-free link row. Every recipient-true fact and
+// every section link is read from the registry — GitHub/LinkedIn come from the
+// typed `github`/`linkedin` frontmatter, Résumé/About from `sectionPath()` of
+// the corresponding registry entries (REG-3: never literal `/resume`).
+// Identity copy is HUMAN COPY placeholder until T-23; JSON-LD lands at T-13.
+// Zero client JS: no script tags, no event-handler attributes, no style=.
+import { render } from 'astro:content';
+import { sectionPath, type SectionEntry } from '../config/sections';
+
+interface Props {
+  entry: SectionEntry;
+  sections: SectionEntry[];
+}
+
+const { entry, sections } = Astro.props;
+const { Content } = await render(entry);
+
+const github = entry.data.github;
+const linkedin = entry.data.linkedin;
+const resumeEntry = sections.find((s) => s.data.slug === 'resume');
+const aboutEntry = sections.find((s) => s.data.slug === 'about');
+
+// Registry-derived internal links — the home scan page surfaces these two
+// sections prominently; unregistering one removes its link (REG-3 discipline).
+const registryLinks = [resumeEntry, aboutEntry]
+  .filter((s): s is SectionEntry => Boolean(s))
+  .map((s) => ({ href: sectionPath(s), label: s.data.navLabel }));
+---
+
+<section class="hero">
+  <h1>{entry.data.title}</h1>
+  <div class="hero-lead">
+    <Content />
+  </div>
+  <p class="hero-proof">{entry.data.description}</p>
+  <div class="link-row">
+    {
+      github && (
+        <a class="link-chip" href={github} target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+          </svg>
+          GitHub
+        </a>
+      )
+    }
+    {
+      linkedin && (
+        <a class="link-chip" href={linkedin} target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z" />
+          </svg>
+          LinkedIn
+        </a>
+      )
+    }
+    {
+      registryLinks.map((link) => (
+        <a class="link-chip" href={link.href}>
+          {link.label}
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  /* Hero: left-aligned single-column stack (UI §3.1, tech design §6.4).
+     clamp() rhythm keeps the full parse above the fold on a 375px viewport. */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2, 0.5rem);
+    padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
+  }
+
+  /* Watch W-6 (T-6 QA): the home h1 overrides the global heading baseline
+     with the hero tokens — --fs-hero size + --lh-hero: 1.05 leading. */
+  .hero h1 {
+    font-size: var(--fs-hero, clamp(2rem, 1.5rem + 2.6vw, 3.25rem));
+    line-height: var(--lh-hero, 1.05);
+    margin-block-end: var(--space-1, 0.25rem);
+  }
+
+  /* Rendered markdown body (UI §3.1 content slots): first paragraph = role-in-
+     domain (--fs-lead, 400), second = primary stack (--fs-body, 400). Real
+     selectable text — no image/CSS-only text (HOME-1). */
+  .hero-lead p {
+    margin: 0;
+    line-height: var(--lh-body, 1.6);
+  }
+
+  .hero-lead p:first-of-type {
+    font-size: var(--fs-lead, clamp(1.0625rem, 1rem + 0.4vw, 1.25rem));
+  }
+
+  .hero-lead p:not(:first-of-type) {
+    font-size: var(--fs-body, 1rem);
+  }
+
+  /* Proof line (HOME-2): muted, small — doubles as the meta description
+     (frontmatter `description` ≤160 chars, SEO-7). */
+  .hero-proof {
+    margin: 0;
+    margin-block-start: var(--space-4, 1rem);
+    font-size: var(--fs-small, 0.875rem);
+    color: var(--color-muted, #52525b);
+  }
+
+  /* Link row (UI §3.1): touch targets ≥44px, single-column wrap on mobile,
+     one horizontal row ≥768px. No competing decorative imagery (HOME-4). */
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3, 0.75rem);
+    margin-block-start: var(--space-5, 1.5rem);
+  }
+
+  @media (min-width: 768px) {
+    .link-row {
+      gap: var(--space-4, 1rem);
+    }
+  }
+
+  .link-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2, 0.5rem);
+    min-height: var(--touch-min, 44px);
+    min-width: var(--touch-min, 44px);
+    padding-inline: var(--space-4, 1rem);
+    font-weight: 600;
+    color: var(--color-text, #18181b);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e4e4e7);
+    border-radius: 8px;
+  }
+
+  .link-chip:hover {
+    color: var(--color-accent-hover, #172554);
+    border-color: var(--color-accent, #1e40af);
+    text-decoration-thickness: 2px;
+  }
+
+  /* Decorative icons: aria-hidden, small, inert (UI §3.1 link-row decisions). */
+  .link-chip svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+</style>
