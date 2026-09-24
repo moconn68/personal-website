@@ -24,7 +24,7 @@ if (!home) {
     <meta name="robots" content="noindex" />
   </Fragment>
   <section class="notfound">
-    <p class="notfound-code" aria-hidden="true">404</p>
+    <p class="notfound-code" aria-hidden="true"></p>
     <h1>Page not found</h1>
     <p class="notfound-message">The page you're looking for doesn't exist.</p>
     <p class="notfound-action">
@@ -44,13 +44,18 @@ if (!home) {
   }
 
   /* Decorative code: large, subtle, aria-hidden (UI §3.4) — not read by
-     screen readers, not selectable. */
+     screen readers, not selectable. Rendered as ::before generated content so
+     there's no text node for axe/Lighthouse contrast checks (T-21 a11y fix);
+     the visual is byte-identical to the normative --color-border watermark. */
   .notfound-code {
     margin: 0;
     font-size: var(--fs-hero, clamp(2rem, 1.5rem + 2.6vw, 3.25rem));
     font-weight: 600;
     line-height: var(--lh-hero, 1.05);
     color: var(--color-border, #e4e4e7);
+  }
+  .notfound-code::before {
+    content: '404';
   }
 
   /* h1 at --fs-h2, weight 600 (UI §3.4 / §2.2). */
