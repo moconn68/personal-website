@@ -1,0 +1,59 @@
+---
+// T-10: About template (UI §3.3). First-person article typography: renders the
+// about entry's markdown body via render(entry) → <Content /> inside a
+// semantic <article>. Warm, personal, readable — no structural assumptions
+// about paragraph count/voice (copy is HUMAN COPY placeholder until T-23, and
+// the template must not invent content). h1 = registry title at --fs-h2;
+// prose at --fs-body / --lh-body capped at --measure (65ch); paragraphs
+// spaced with --space-5. Zero client JS.
+// Props contract per design §5.1: entry + full ordered registry.
+import { render } from 'astro:content';
+import { type SectionEntry } from '../config/sections';
+
+interface Props {
+  entry: SectionEntry;
+  sections: SectionEntry[];
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<article class="about">
+  <h1>{entry.data.title}</h1>
+  <div class="about-body">
+    <Content />
+  </div>
+</article>
+
+<style>
+  /* Single-column left-aligned article; same clamp() rhythm as the other
+     section pages. <article> is the prose wrapper (ABT-4, tech design §6.5). */
+  .about {
+    padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
+  }
+
+  /* h1 at --fs-h2, weight 600 (UI §3.3 / §2.2). */
+  .about h1 {
+    font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
+    line-height: var(--lh-h2, 1.2);
+    margin-block-end: var(--space-5, 1.5rem);
+  }
+
+  /* Rendered markdown body: --fs-body 400, --lh-body 1.6, max 65ch for
+     extended reading (UI §3.3). Paragraph spacing --space-5; no structural
+     assumptions about count — this styles whatever markdown renders. */
+  .about-body {
+    max-width: var(--measure, 65ch);
+    font-size: var(--fs-body, 1rem);
+    line-height: var(--lh-body, 1.6);
+  }
+
+  .about-body p {
+    margin: 0 0 var(--space-5, 1.5rem);
+  }
+
+  .about-body p:last-child {
+    margin-block-end: 0;
+  }
+</style>
