@@ -546,6 +546,8 @@ npx glyphhanger \
   dist/index.html dist/resume/index.html dist/about/index.html dist/404.html
 ```
 
+- **AMENDED at T-17:** glyphhanger shells out to Python's `fonttools`+`brotli`, which are not installed on this machine (owner prefers no Python toolchain). The sanctioned alternative `subset-font` (pure Node/WASM) is used instead. The reproducible one-shot is `npm run build && node scripts/subset-fonts.mjs` (see that script's header). `scripts/subset-fonts.mjs` derives the glyph set by sweeping the built HTML (covering `é`, `©`, typographic quotes) plus the redundancy whitelist above, and writes the two pinned WOFF2 names below.
+
 Rename the produced subset files to the pinned names `src/assets/fonts/ibm-plex-sans-400.woff2` and `ibm-plex-sans-600.woff2` (if the installed glyphhanger output naming differs, rename to these exact names — the CSS references them). The `.ttf` sources stay in `scripts/font-src/` for reproducibility; the subsetted `.woff2` output is **committed** (build never depends on glyphhanger — T-17 is a one-shot asset ticket).
 - **`@font-face`** in `src/assets/styles/global.css` (T-17), `font-display: swap` (content-first, NF-1):
 

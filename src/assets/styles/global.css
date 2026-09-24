@@ -2,8 +2,25 @@
    All token values are byte-exact normative per tech design §6.2–§6.4
    (mirrored verbatim by UI spec §2). Per-component styling lives in each
    .astro <style> block (Astro auto-scopes); this file is global only.
-   @font-face rules land here at T-17 — deliberately absent until then
-   (system fallbacks in --font-sans render until the subset font ships). */
+   @font-face blocks (T-17): self-hosted subsets, font-display: swap. */
+
+/* T-17: self-hosted IBM Plex Sans subsets (see scripts/subset-fonts.mjs).
+   font-display: swap = content-first (NF-1); system-ui fallbacks downstream
+   in --font-sans cover any glyph the subset omits. */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/ibm-plex-sans-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/ibm-plex-sans-600.woff2') format('woff2');
+}
 
 :root {
   /* §6.2 color palette */
