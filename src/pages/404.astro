@@ -1,0 +1,102 @@
+---
+// T-11: Custom 404 page (UI §3.4). A fixed page — NOT a registry section, no
+// error-template dispatch (tech design §5.3; the enum has no `error` value).
+// Decorative "404" is aria-hidden (not read by screen readers) above the h1;
+// single primary action reuses the §6.4 `.btn-download` token to go home.
+// Ships `<meta name="robots" content="noindex">` (excluded from the sitemap
+// via the T-15 filter). Title/description here are self-contained until T-12's
+// Seo component refactors the head. Zero client JS.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { sectionPath } from '../config/sections';
+import { getSections } from '../config/sections';
+
+const sections = await getSections();
+const home = sections.find((entry) => entry.data.slug === 'home');
+if (!home) {
+  throw new Error('Registry must contain a "home" section — the 404 "Back to home" link derives from it.');
+}
+---
+
+<BaseLayout>
+  <Fragment slot="head">
+    <title>404 — Page not found</title>
+    <meta name="description" content="This page does not exist. Return to the homepage." />
+    <meta name="robots" content="noindex" />
+  </Fragment>
+  <section class="notfound">
+    <p class="notfound-code" aria-hidden="true">404</p>
+    <h1>Page not found</h1>
+    <p class="notfound-message">The page you're looking for doesn't exist.</p>
+    <p class="notfound-action">
+      <a class="btn-download" href={sectionPath(home)}>Back to home</a>
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Single-column left-aligned stack mirroring the section pages' rhythm. */
+  .notfound {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3, 0.75rem);
+    padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
+  }
+
+  /* Decorative code: large, subtle, aria-hidden (UI §3.4) — not read by
+     screen readers, not selectable. */
+  .notfound-code {
+    margin: 0;
+    font-size: var(--fs-hero, clamp(2rem, 1.5rem + 2.6vw, 3.25rem));
+    font-weight: 600;
+    line-height: var(--lh-hero, 1.05);
+    color: var(--color-border, #e4e4e7);
+  }
+
+  /* h1 at --fs-h2, weight 600 (UI §3.4 / §2.2). */
+  .notfound h1 {
+    font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
+    line-height: var(--lh-h2, 1.2);
+  }
+
+  .notfound-message {
+    margin: 0;
+    font-size: var(--fs-body, 1rem);
+    color: var(--color-muted, #52525b);
+  }
+
+  .notfound-action {
+    margin: 0;
+    margin-block-start: var(--space-3, 0.75rem);
+  }
+
+  /* .btn-download token (tech design §6.4), duplicated from ResumeSection —
+     Astro scoped styles are per-component, so each owner defines it. */
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding-inline: 1.5rem;
+    padding-block: var(--space-2, 0.5rem);
+    font-size: var(--fs-body, 1rem);
+    font-weight: 600;
+    color: var(--color-surface, #ffffff);
+    background: var(--color-accent, #1e40af);
+    border: 1px solid var(--color-accent, #1e40af);
+    border-radius: 8px;
+    text-decoration: none;
+  }
+
+  .btn-download:hover {
+    background: var(--color-accent-hover, #172554);
+    border-color: var(--color-accent-hover, #172554);
+  }
+
+  /* Visible focus ring for keyboard and pointer input; never outline: none. */
+  .btn-download:focus,
+  .btn-download:focus-visible {
+    outline: 2px solid var(--color-accent, #1e40af);
+    outline-offset: 2px;
+  }
+</style>
