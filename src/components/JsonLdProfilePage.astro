@@ -1,0 +1,27 @@
+---
+// T-14: ProfilePage JSON-LD data block (design §8.3) — rendered at the TOP of
+// the Résumé template body (inside <main>), NOT in <head> (same REG-6/placement
+// rationale as T-13). Facts come from the ONE shared module getPersonData()
+// (no duplication); mainEntity references the Person node. `url` = the résumé
+// page's absolute canonical URL via absoluteUrl('resume'). Data block, not
+// client JS — T-20 must exempt type="application/ld+json".
+import { getPersonData } from '../config/person';
+import { absoluteUrl } from '../config/site';
+
+const p = await getPersonData();
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  name: `${p.name} — Résumé`,
+  url: absoluteUrl('resume'),
+  mainEntity: {
+    '@type': 'Person',
+    name: p.name,
+    url: p.url,
+    jobTitle: p.jobTitle,
+    sameAs: p.sameAs.filter(Boolean),
+  },
+};
+---
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(ld)} />

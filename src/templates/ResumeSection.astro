@@ -7,6 +7,7 @@
 // Context copy is HUMAN COPY placeholder until T-23. Zero client JS.
 // Props contract per design §5.1: entry + full ordered registry.
 import { type SectionEntry } from '../config/sections';
+import JsonLdProfilePage from '../components/JsonLdProfilePage.astro';
 
 interface Props {
   entry: SectionEntry;
@@ -17,6 +18,7 @@ const { entry } = Astro.props;
 ---
 
 <section class="resume">
+  <JsonLdProfilePage />
   <h1>{entry.data.title}</h1>
   <p class="resume-context">{entry.data.description}</p>
   <p class="resume-action">
