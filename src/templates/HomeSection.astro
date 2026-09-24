@@ -10,6 +10,7 @@
 // Zero client JS: no script tags, no event-handler attributes, no style=.
 import { render } from 'astro:content';
 import { sectionPath, type SectionEntry } from '../config/sections';
+import JsonLdPerson from '../components/JsonLdPerson.astro';
 
 interface Props {
   entry: SectionEntry;
@@ -32,6 +33,7 @@ const registryLinks = [resumeEntry, aboutEntry]
 ---
 
 <section class="hero">
+  <JsonLdPerson />
   <h1>{entry.data.title}</h1>
   <div class="hero-lead">
     <Content />
