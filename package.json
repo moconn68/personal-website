@@ -7,10 +7,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/gen-headers.mjs",
     "preview": "astro preview",
     "check": "astro check",
-    "astro": "astro"
+    "astro": "astro",
+    "fonts:subset": "node scripts/subset-fonts.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
