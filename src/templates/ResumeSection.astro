@@ -1,0 +1,90 @@
+---
+// T-9: Résumé landing template (UI §3.2). A purposefully spare surface:
+// `h1` = registry title, one muted context line from `data.description`, and a
+// single primary action — `.btn-download` → `/resume.pdf`. No résumé content
+// is authored or rendered in HTML (RES-1, OQ-1): the PDF is the résumé.
+// The button works even before T-24 ships the PDF (404 until then — expected).
+// Context copy is HUMAN COPY placeholder until T-23. Zero client JS.
+// Props contract per design §5.1: entry + full ordered registry.
+import { type SectionEntry } from '../config/sections';
+
+interface Props {
+  entry: SectionEntry;
+  sections: SectionEntry[];
+}
+
+const { entry } = Astro.props;
+---
+
+<section class="resume">
+  <h1>{entry.data.title}</h1>
+  <p class="resume-context">{entry.data.description}</p>
+  <p class="resume-action">
+    <a class="btn-download" href="/resume.pdf">Download résumé (PDF)</a>
+  </p>
+</section>
+
+<style>
+  /* Single-column left-aligned stack (UI §3.2); same clamp() rhythm as the
+     home hero for visual consistency across section pages. */
+  .resume {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4, 1rem);
+    padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
+  }
+
+  /* h1 at --fs-h2, weight 600 (UI §3.2 / §2.2). */
+  .resume h1 {
+    font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
+    line-height: var(--lh-h2, 1.2);
+    margin-block-end: var(--space-1, 0.25rem);
+  }
+
+  /* Context line (RES context): muted, --fs-body, one sentence from the
+     registry description — why download, without competing with the CTA. */
+  .resume-context {
+    margin: 0;
+    max-width: var(--measure, 65ch);
+    font-size: var(--fs-body, 1rem);
+    color: var(--color-muted, #52525b);
+  }
+
+  /* The single primary action. Wrap in a <p> so spacing stays in-flow. */
+  .resume-action {
+    margin: 0;
+    margin-block-start: var(--space-3, 0.75rem);
+  }
+
+  /* .btn-download token (tech design §6.4): the unambiguous primary action —
+     accent background, surface text 600, 48px min-height, 1.5rem padding,
+     radius 8px, focus ring visible. No other CTAs on this page. */
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding-inline: 1.5rem;
+    padding-block: var(--space-2, 0.5rem);
+    font-size: var(--fs-body, 1rem);
+    font-weight: 600;
+    color: var(--color-surface, #ffffff);
+    background: var(--color-accent, #1e40af);
+    border: 1px solid var(--color-accent, #1e40af);
+    border-radius: 8px;
+    text-decoration: none;
+  }
+
+  .btn-download:hover {
+    background: var(--color-accent-hover, #172554);
+    border-color: var(--color-accent-hover, #172554);
+  }
+
+  /* Visible focus ring for keyboard and pointer input; never outline: none. */
+  .btn-download:focus,
+  .btn-download:focus-visible {
+    outline: 2px solid var(--color-accent, #1e40af);
+    outline-offset: 2px;
+  }
+</style>
