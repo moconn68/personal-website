@@ -1,9 +1,9 @@
 # QA Report — T-4: Site URL config (PUBLIC_SITE_URL, default `https://mattoconn.pages.dev`)
 
-- **Ticket:** T-4 (`docs/tickets/tickets-personal-website.md` — SEO-11, DEP-5, DEP-6)
+- **Ticket:** T-4 (`projects/personal-website/tickets/tickets.md` — SEO-11, DEP-5, DEP-6)
 - **Baseline:** `ecae48f` (T-3); working-tree delta under test
 - **QA date:** 2026-09-22 · **Node:** v24.21.0 · **Platform:** darwin
-- **Changed paths (exactly 4):** `astro.config.mjs` (M), `docs/tickets/tickets-personal-website.md` (M — checkbox flip only), `.env.example` (U), `src/config/site.ts` (U)
+- **Changed paths (exactly 4):** `astro.config.mjs` (M), `projects/personal-website/tickets/tickets.md` (M — checkbox flip only), `.env.example` (U), `src/config/site.ts` (U)
 
 ## Verdict: **Pass**
 

@@ -1,6 +1,6 @@
 # PRD: Personal Website — v1 Professional Identity Hub
 
-> **Upstream source:** [vision-personal-website.md](../vision/vision-personal-website.md)  
+> **Upstream source:** [vision.md](../vision/vision.md)  
 > **PRD version:** 1.3  
 > **Date:** 2026-09-21  
 > **Author:** Product Manager (AI SDLC)
@@ -290,4 +290,4 @@ Derived from the three target personas in the vision document:
 
 ---
 
-*This PRD is a planning artifact for the AI SDLC execution pipeline. It references [vision-personal-website.md](../vision/vision-personal-website.md) as the upstream source of truth.*
+*This PRD is a planning artifact for the AI SDLC execution pipeline. It references [vision.md](../vision/vision.md) as the upstream source of truth.*

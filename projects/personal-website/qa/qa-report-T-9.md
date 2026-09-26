@@ -1,9 +1,9 @@
 # QA Report — T-9: Résumé landing template
 
-- **Ticket:** T-9 (`docs/tickets/tickets-personal-website.md` — RES-1, RES-4, US-5, OQ-1, NF-2, NF-5)
+- **Ticket:** T-9 (`projects/personal-website/tickets/tickets.md` — RES-1, RES-4, US-5, OQ-1, NF-2, NF-5)
 - **Baseline:** `f076f90` (T-8); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 2):** `src/templates/ResumeSection.astro` (new), `docs/tickets/tickets-personal-website.md` (M — T-9 checkbox flip)
+- **Changed paths (exactly 2):** `src/templates/ResumeSection.astro` (new), `projects/personal-website/tickets/tickets.md` (M — T-9 checkbox flip)
 
 ## Verdict: **Pass**
 
@@ -19,7 +19,7 @@ All acceptance criteria verified against source. No bugs found in T-9 scope. Zer
 
 ## Validation gates (all executed)
 
-1. **Scope integrity** — `git status --short` shows exactly `src/templates/` (new) + `docs/tickets/...` (M, one-line checkbox flip); no earlier-ticket files touched. Pass.
+1. **Scope integrity** — `git status --short` shows exactly `src/templates/` (new) + `projects/personal-website/tickets/...` (M, one-line checkbox flip); no earlier-ticket files touched. Pass.
 2. **Typecheck** — `npx astro check` exit 0: 0 errors, 0 warnings, 2 hints (pre-existing T-2 zod `.url()` deprecations — known debt, not a regression). Pass.
 3. **Build** — `npm run build` exit 0 (scaffold, 1 page — template is unrouted until T-7, per the ticket's own NOTE). Pass.
 4. **Ticket verifier** — `rg 'Download résumé \(PDF\)|href="/resume.pdf' src/templates/ResumeSection.astro` matches both. `/resume.pdf` is a static file path (not a section route), so the literal href is correct here and exempt from REG-3 (which constrains *section* links). Rendered-output assertion (`dist/resume/index.html` containing the anchor) lands at T-7. Pass.

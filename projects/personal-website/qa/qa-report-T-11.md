@@ -1,9 +1,9 @@
 # QA Report — T-11: Custom 404 page
 
-- **Ticket:** T-11 (`docs/tickets/tickets-personal-website.md` — NF-2, NF-3, NF-5, SEO-3/SEO-10 hygiene)
+- **Ticket:** T-11 (`projects/personal-website/tickets/tickets.md` — NF-2, NF-3, NF-5, SEO-3/SEO-10 hygiene)
 - **Baseline:** `4b4e44d` (T-7); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 2):** `src/pages/404.astro` (new), `docs/tickets/tickets-personal-website.md` (M — T-11 checkbox flip)
+- **Changed paths (exactly 2):** `src/pages/404.astro` (new), `projects/personal-website/tickets/tickets.md` (M — T-11 checkbox flip)
 
 ## Verdict: **Pass**
 

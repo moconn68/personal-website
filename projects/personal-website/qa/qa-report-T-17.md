@@ -1,9 +1,9 @@
 # QA Report — T-17: Self-hosted subset WOFF2 (IBM Plex Sans 400/600)
 
-- **Ticket:** T-17 (`docs/tickets/tickets-personal-website.md` — NF-1, PERFORMANCE-1, R7; design §7)
+- **Ticket:** T-17 (`projects/personal-website/tickets/tickets.md` — NF-1, PERFORMANCE-1, R7; design §7)
 - **Baseline:** `1dd3167` (T-16); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (8):** `scripts/font-src/IBMPlexSans-Regular.ttf` (new), `scripts/font-src/IBMPlexSans-SemiBold.ttf` (new), `scripts/subset-fonts.mjs` (new), `src/assets/fonts/ibm-plex-sans-400.woff2` (new), `src/assets/fonts/ibm-plex-sans-600.woff2` (new), `src/assets/styles/global.css` (M — `@font-face`), `docs/designs/tech-design-personal-website.md` (M — §7 command amendment), `docs/tickets/tickets-personal-website.md` (M — T-17 checkbox flip). Deps: `package.json`/`package-lock.json` (`subset-font` devDependency).
+- **Changed paths (8):** `scripts/font-src/IBMPlexSans-Regular.ttf` (new), `scripts/font-src/IBMPlexSans-SemiBold.ttf` (new), `scripts/subset-fonts.mjs` (new), `src/assets/fonts/ibm-plex-sans-400.woff2` (new), `src/assets/fonts/ibm-plex-sans-600.woff2` (new), `src/assets/styles/global.css` (M — `@font-face`), `projects/personal-website/designs/tech-design.md` (M — §7 command amendment), `projects/personal-website/tickets/tickets.md` (M — T-17 checkbox flip). Deps: `package.json`/`package-lock.json` (`subset-font` devDependency).
 
 ## Verdict: **Pass**
 

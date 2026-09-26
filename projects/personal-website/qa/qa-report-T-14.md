@@ -1,9 +1,9 @@
 # QA Report — T-14: ProfilePage JSON-LD on Résumé
 
-- **Ticket:** T-14 (`docs/tickets/tickets-personal-website.md` — SEO-2, NF-4, NF-5 boundary)
+- **Ticket:** T-14 (`projects/personal-website/tickets/tickets.md` — SEO-2, NF-4, NF-5 boundary)
 - **Baseline:** `f2229cc` (T-13); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 3):** `src/components/JsonLdProfilePage.astro` (new), `src/templates/ResumeSection.astro` (M — top-of-body data block), `docs/tickets/tickets-personal-website.md` (M — T-14 checkbox flip). `src/config/person.ts` reused, not modified.
+- **Changed paths (exactly 3):** `src/components/JsonLdProfilePage.astro` (new), `src/templates/ResumeSection.astro` (M — top-of-body data block), `projects/personal-website/tickets/tickets.md` (M — T-14 checkbox flip). `src/config/person.ts` reused, not modified.
 
 ## Verdict: **Pass**
 

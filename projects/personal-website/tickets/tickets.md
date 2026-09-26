@@ -1,7 +1,7 @@
 # Tickets — Personal Website v1 (Matthew O'Connell)
 
-> **Source of truth:** `docs/PRDs/PRD-personal-website.md` (v1.2). Supersedes the vision doc where they conflict.
-> **Read before executing:** this file is the Orchestrator's **sole tasking source**. `docs/plans/plan-personal-website.md` is reference only.
+> **Source of truth:** `projects/personal-website/PRDs/PRD.md` (v1.2). Supersedes the vision doc where they conflict.
+> **Read before executing:** this file is the Orchestrator's **sole tasking source**. `projects/personal-website/plans/plan.md` is reference only.
 > **Execution mode:** the checklist in Part A is strictly **topologically ordered** — a single lazy pass from T-1 to T-24 is a valid execution order. Every ticket's dependencies appear strictly before it in the file.
 
 **Codebase label legend** (used in the checklist's 5th slot):
@@ -158,7 +158,7 @@ The site ships structured data (Person JSON-LD on Home, ProfilePage JSON-LD on R
 - **Suggested skills:** `astro`, `typescript`, `vite` (import.meta.glob)
 - **Verification command(s):** `npm run build && ls dist/ dist/resume/ dist/about/ && rg -o 'href="/resume"|href="/about"' dist/index.html` (nav renders the three sections — the dist-level nav assertion deferred from T-5); via `npm run preview`, an unknown URL returns the 404 page.
 - **Notes:** REG-4/REG-6 core machinery. Runs **after** the template components (T-8/T-9/T-10) precisely so the missing-template build-failure semantics (§5.1) are meaningful — the route is the consumer that renders them. Routing shape (optional catch-all with home→root) is normative for the design pass; if the design instead prefers fixed `index.astro` for home, the registry slug→path mapping must stay centralized in `getSections()`/a `sectionPath()` helper. The 404 is a fixed page (T-11); there is no error-template dispatch per tech design §5.3.
-- **Execution deviations (T-7):** (1) `trailingSlash: 'always'` lands here in `astro.config.mjs` — the T-5 watcher's canonical `/resume/` form is only consequential once section routes exist. (2) Scaffold `src/pages/index.astro` is **deleted** (it would conflict with the catch-all's home route; its entry point + favicon references are superseded). (3) Scaffold `public/favicon.ico`/`favicon.svg` are **deleted** per tech design §12.5 (no favicon in v1) — the T-6 watcher note. (4) No `path` prop to BaseLayout (per the T-6 deviation note — Nav reads `Astro.url.pathname`); `sectionPath`/`home` re-imported at T-12 when the canonical/title wiring needs them. (5) Head slot empty until T-12's Seo — interim pages carry no `<title>`. All five reviewer + QA sanctioned (see `docs/qa/qa-report-personal-website-T-7.md`).
+- **Execution deviations (T-7):** (1) `trailingSlash: 'always'` lands here in `astro.config.mjs` — the T-5 watcher's canonical `/resume/` form is only consequential once section routes exist. (2) Scaffold `src/pages/index.astro` is **deleted** (it would conflict with the catch-all's home route; its entry point + favicon references are superseded). (3) Scaffold `public/favicon.ico`/`favicon.svg` are **deleted** per tech design §12.5 (no favicon in v1) — the T-6 watcher note. (4) No `path` prop to BaseLayout (per the T-6 deviation note — Nav reads `Astro.url.pathname`); `sectionPath`/`home` re-imported at T-12 when the canonical/title wiring needs them. (5) Head slot empty until T-12's Seo — interim pages carry no `<title>`. All five reviewer + QA sanctioned (see `projects/personal-website/qa/qa-report-T-7.md`).
 
 #### T-8: Home scan-page template
 

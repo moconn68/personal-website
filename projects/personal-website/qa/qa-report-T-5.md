@@ -1,9 +1,9 @@
 # QA Report — T-5: Nav component driven entirely by the sections registry
 
-- **Ticket:** T-5 (`docs/tickets/tickets-personal-website.md` — REG-3, US-10, US-2, NF-2, NF-3, NF-5)
+- **Ticket:** T-5 (`projects/personal-website/tickets/tickets.md` — REG-3, US-10, US-2, NF-2, NF-3, NF-5)
 - **Baseline:** `6b26b58` (T-4); working-tree delta under test
 - **QA date:** 2026-09-22 · **Platform:** darwin
-- **Changed paths (exactly 2):** `src/components/Nav.astro` (U — new), `docs/tickets/tickets-personal-website.md` (M — T-5 checkbox flip only)
+- **Changed paths (exactly 2):** `src/components/Nav.astro` (U — new), `projects/personal-website/tickets/tickets.md` (M — T-5 checkbox flip only)
 
 ## Verdict: **Pass**
 
@@ -21,7 +21,7 @@ All 10 validation gates pass. Build green, typecheck clean (0 errors / 0 warning
 
 ## Validation gates (all executed)
 
-1. **Scope integrity** — `git status --short` shows exactly `docs/tickets/...` (M) + `src/components/` (U); `src/components/` contains only `Nav.astro`; no earlier-ticket files touched. Pass.
+1. **Scope integrity** — `git status --short` shows exactly `projects/personal-website/tickets/...` (M) + `src/components/` (U); `src/components/` contains only `Nav.astro`; no earlier-ticket files touched. Pass.
 2. **Build** — `npm run build` exit 0 (scaffold, 1 page). Pass.
 3. **Typecheck** — `npm run check` exit 0, 0 errors / 0 warnings (2 hints = pre-existing T-2 zod `.url()` deprecations, out of scope). Pass.
 4. **Registry purity** — `rg 'href="/resume"|href="/about"'` no match; `rg 'Résumé|About|Home'` no literal labels. Pass.

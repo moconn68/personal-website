@@ -1,9 +1,9 @@
 # QA Report — T-10: About template
 
-- **Ticket:** T-10 (`docs/tickets/tickets-personal-website.md` — ABT-1..4, US-8, NF-2, NF-3)
+- **Ticket:** T-10 (`projects/personal-website/tickets/tickets.md` — ABT-1..4, US-8, NF-2, NF-3)
 - **Baseline:** `332c187` (T-9); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 2):** `src/templates/AboutSection.astro` (new), `docs/tickets/tickets-personal-website.md` (M — T-10 checkbox flip)
+- **Changed paths (exactly 2):** `src/templates/AboutSection.astro` (new), `projects/personal-website/tickets/tickets.md` (M — T-10 checkbox flip)
 
 ## Verdict: **Pass**
 
@@ -19,7 +19,7 @@ All acceptance criteria verified against source. No bugs found in T-10 scope. Ze
 
 ## Validation gates (all executed)
 
-1. **Scope integrity** — `git status --short` shows exactly `src/templates/` (new) + `docs/tickets/...` (M, one-line checkbox flip); no earlier-ticket files touched. Pass.
+1. **Scope integrity** — `git status --short` shows exactly `src/templates/` (new) + `projects/personal-website/tickets/...` (M, one-line checkbox flip); no earlier-ticket files touched. Pass.
 2. **Typecheck** — `npx astro check` exit 0: 0 errors, 0 warnings, 2 hints (pre-existing T-2 zod `.url()` deprecations — known debt). Pass.
 3. **Build** — `npm run build` exit 0 (scaffold, 1 page — template unrouted until T-7). Pass.
 4. **Ticket verifier** — `rg -c '<article' src/templates/AboutSection.astro` → 3 (opening tag + two comment references); ≥1. Pass.

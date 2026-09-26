@@ -1,9 +1,9 @@
 # QA Report — T-12: SEO head component (title/description/OG/canonical)
 
-- **Ticket:** T-12 (`docs/tickets/tickets-personal-website.md` — SEO-6, SEO-7, SEO-8, SEO-11, R8)
+- **Ticket:** T-12 (`projects/personal-website/tickets/tickets.md` — SEO-6, SEO-7, SEO-8, SEO-11, R8)
 - **Baseline:** `f696d8a` (T-11); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 4):** `src/components/Seo.astro` (new), `src/pages/[...slug].astro` (M — head-slot wiring + title/canonical), `docs/tickets/tickets-personal-website.md` (M — T-12 checkbox flip), `src/pages/404.astro` (M — documented as unaffected: static head retained)
+- **Changed paths (exactly 4):** `src/components/Seo.astro` (new), `src/pages/[...slug].astro` (M — head-slot wiring + title/canonical), `projects/personal-website/tickets/tickets.md` (M — T-12 checkbox flip), `src/pages/404.astro` (M — documented as unaffected: static head retained)
 
 ## Verdict: **Pass**
 

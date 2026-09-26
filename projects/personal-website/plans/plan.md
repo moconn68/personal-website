@@ -4,16 +4,17 @@
 
 | Artifact | Path |
 |---|---|
-| Vision | [`docs/vision/vision-personal-website.md`](../vision/vision-personal-website.md) |
-| PRD (v1.3) | [`docs/PRDs/PRD-personal-website.md`](../PRDs/PRD-personal-website.md) |
-| Tickets (Sole tasking source — T-1 to T-24) | [`docs/tickets/tickets-personal-website.md`](../tickets/tickets-personal-website.md) |
-| Tech Design | [`docs/designs/tech-design-personal-website.md`](../designs/tech-design-personal-website.md) |
-| UI Spec | [`docs/designs/ui-design-personal-website.md`](../designs/ui-design-personal-website.md) |
-| Plan (this file — reference only) | `docs/plans/plan-personal-website.md` |
+| Project | personal-website (frozen at PRD draft) |
+| Vision | [`projects/personal-website/vision/vision.md`(../vision/vision.md) |
+| PRD (v1.3) | [`projects/personal-website/PRDs/PRD.md`(../PRDs/PRD.md) |
+| Tickets (Sole tasking source — T-1 to T-24) | [`projects/personal-website/tickets/tickets.md`(../tickets/tickets.md) |
+| Tech Design | [`projects/personal-website/designs/tech-design.md`(../designs/tech-design.md) |
+| UI Spec | [`projects/personal-website/designs/ui-design.md`(../designs/ui-design.md) |
+| Plan (this file — reference only) | `projects/personal-website/plans/plan.md` |
 
 **Tech stack:** Astro `^7` (Content Layer API + glob loader, `npm create astro@latest -- --template minimal --no-git`), TypeScript strict, scoped CSS (no Tailwind), IBM Plex Sans (OFL) subset to WOFF2, `@astrojs/sitemap`, Node toolchain, deployed to Cloudflare Pages at `mattoconn.pages.dev` (availability checked at deploy; no custom domain in v1). Static zero-JS output with JSON-LD data blocks exempt from the zero-JS scanner.
 
-**How to execute:** prompt the `orchestrator` with **"tell me the next unit of work and implement it"** at any time. It picks the next available unchecked ticket in `docs/tickets/tickets-personal-website.md` and runs the build-review-QA loop for that item. The checkbox state in the tickets file **is** tasking state — this plan file is background reference only and holds no checkboxes.
+**How to execute:** prompt the `orchestrator` with **"tell me the next unit of work and implement it"** at any time. It picks the next available unchecked ticket in `projects/personal-website/tickets/tickets.md` and runs the build-review-QA loop for that item. The checkbox state in the tickets file **is** tasking state — this plan file is background reference only and holds no checkboxes.
 
 ## 2. Design Summary
 

@@ -87,4 +87,4 @@ A small static site with four surfaces in v1:
 
 ## 10. Next Step
 
-Hand off to `project-planner` with this file (`docs/vision/vision-personal-website.md`) to turn it into an executable plan, with the v1 scope cap and the extensibility promise encoded as hard requirements.
+Hand off to `project-planner` with this file (`projects/personal-website/vision/vision.md`) to turn it into an executable plan, with the v1 scope cap and the extensibility promise encoded as hard requirements.
