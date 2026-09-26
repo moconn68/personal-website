@@ -1,9 +1,9 @@
 # QA Report — T-7: Registry-driven section route with template dispatch
 
-- **Ticket:** T-7 (`projects/personal-website/tickets/tickets.md` — REG-4, REG-6, US-9, US-10, US-11)
+- **Ticket:** T-7 (`projects/initial-site/tickets/tickets.md` — REG-4, REG-6, US-9, US-10, US-11)
 - **Baseline:** `4594137` (T-10); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (6):** `src/pages/[...slug].astro` (new), `src/pages/index.astro` (deleted — scaffold superseded), `astro.config.mjs` (M — `trailingSlash: 'always'`), `public/favicon.ico` + `public/favicon.svg` (deleted — design §12.5 ships no favicon), `projects/personal-website/tickets/tickets.md` (M — T-7 checkbox flip + deviations note)
+- **Changed paths (6):** `src/pages/[...slug].astro` (new), `src/pages/index.astro` (deleted — scaffold superseded), `astro.config.mjs` (M — `trailingSlash: 'always'`), `public/favicon.ico` + `public/favicon.svg` (deleted — design §12.5 ships no favicon), `projects/initial-site/tickets/tickets.md` (M — T-7 checkbox flip + deviations note)
 
 ## Verdict: **Pass**
 

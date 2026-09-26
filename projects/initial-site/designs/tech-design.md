@@ -1,6 +1,6 @@
 # Technical Design — Personal Website v1 (Matthew O'Connell)
 
-> **Upstream:** `projects/personal-website/PRDs/PRD.md` (v1.2) · `projects/personal-website/tickets/tickets.md` (T-1..T-24)
+> **Upstream:** `projects/initial-site/PRDs/PRD.md` (v1.2) · `projects/initial-site/tickets/tickets.md` (T-1..T-24)
 > **Status:** Normative for implementation. Where this design and a ticket's *literal acceptance wording* conflict, this document **supersedes** the ticket wording — every such deviation is flagged inline with `[DEVIATION]`.
 > **Date:** 2026-09-21 · **Architect:** Software Architect (AI SDLC)
 

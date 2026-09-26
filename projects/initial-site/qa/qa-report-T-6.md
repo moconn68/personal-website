@@ -1,9 +1,9 @@
 # QA Report — T-6: BaseLayout with semantic landmarks + head slot
 
-- **Ticket:** T-6 (`projects/personal-website/tickets/tickets.md` — REG-4, SEO-9, NF-2, NF-3, NF-5)
+- **Ticket:** T-6 (`projects/initial-site/tickets/tickets.md` — REG-4, SEO-9, NF-2, NF-3, NF-5)
 - **Baseline:** `bf53577` (T-5); working-tree delta under test
 - **QA date:** 2026-09-22 · **Platform:** darwin
-- **Changed paths (exactly 3):** `src/layouts/BaseLayout.astro` (new), `src/assets/styles/global.css` (new), `projects/personal-website/tickets/tickets.md` (M — T-6 checkbox flip only)
+- **Changed paths (exactly 3):** `src/layouts/BaseLayout.astro` (new), `src/assets/styles/global.css` (new), `projects/initial-site/tickets/tickets.md` (M — T-6 checkbox flip only)
 
 ## Verdict: **Pass**
 

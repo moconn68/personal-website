@@ -1,9 +1,9 @@
 # QA Report — T-22: Extensibility manual verification (stub "Now" section)
 
-- **Ticket:** T-22 (`projects/personal-website/tickets/tickets.md` — US-9, REG-6, REG-7; design §4.2 pre-staged enum)
+- **Ticket:** T-22 (`projects/initial-site/tickets/tickets.md` — US-9, REG-6, REG-7; design §4.2 pre-staged enum)
 - **Baseline:** `e30e5d0` (T-21); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (final state):** none durable — stub created + reverted (`src/content/sections/now.md`, `src/templates/NowSection.astro` removed). `projects/personal-website/tickets/tickets.md` (M — T-22 checkbox flip) + this report committed as the record.
+- **Changed paths (final state):** none durable — stub created + reverted (`src/content/sections/now.md`, `src/templates/NowSection.astro` removed). `projects/initial-site/tickets/tickets.md` (M — T-22 checkbox flip) + this report committed as the record.
 - **Method:** add stub → check/build → assert nav+sitemap+route+gate → revert → rebuild → assert pristine.
 
 ## Verdict: **Pass**

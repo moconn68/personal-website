@@ -1,9 +1,9 @@
 # QA Report — T-20: Static-output verification script (zero-JS + zero third-party)
 
-- **Ticket:** T-20 (`projects/personal-website/tickets/tickets.md` — NF-4, NF-5, DEP-3; design §11.1–§11.2)
+- **Ticket:** T-20 (`projects/initial-site/tickets/tickets.md` — NF-4, NF-5, DEP-3; design §11.1–§11.2)
 - **Baseline:** `b248e8d` (T-18; T-19 parked on user's Cloudflare account creation)
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (3):** `scripts/verify-static.mjs` (new), `package.json` (M — `verify: node scripts/verify-static.mjs`), `projects/personal-website/tickets/tickets.md` (M — T-20 checkbox flip)
+- **Changed paths (3):** `scripts/verify-static.mjs` (new), `package.json` (M — `verify: node scripts/verify-static.mjs`), `projects/initial-site/tickets/tickets.md` (M — T-20 checkbox flip)
 
 ## Verdict: **Pass**
 

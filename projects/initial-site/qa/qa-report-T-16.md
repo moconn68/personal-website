@@ -1,9 +1,9 @@
 # QA Report — T-16: robots.txt endpoint — allow-all + explicit AI crawlers + Sitemap line
 
-- **Ticket:** T-16 (`projects/personal-website/tickets/tickets.md` — SEO-4, SEO-11, SEO-12 philosophy)
+- **Ticket:** T-16 (`projects/initial-site/tickets/tickets.md` — SEO-4, SEO-11, SEO-12 philosophy)
 - **Baseline:** `6113b7a` (T-15); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 2):** `src/pages/robots.txt.ts` (new), `projects/personal-website/tickets/tickets.md` (M — T-16 checkbox flip)
+- **Changed paths (exactly 2):** `src/pages/robots.txt.ts` (new), `projects/initial-site/tickets/tickets.md` (M — T-16 checkbox flip)
 
 ## Verdict: **Pass**
 

@@ -1,9 +1,9 @@
 # QA Report — T-8: Home scan-page template
 
-- **Ticket:** T-8 (`projects/personal-website/tickets/tickets.md` — US-1, US-2, US-4, HOME-1..5, NF-2, NF-5, REG-3)
+- **Ticket:** T-8 (`projects/initial-site/tickets/tickets.md` — US-1, US-2, US-4, HOME-1..5, NF-2, NF-5, REG-3)
 - **Baseline:** `d944576` (T-6); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 2):** `src/templates/HomeSection.astro` (new), `projects/personal-website/tickets/tickets.md` (M — T-8 checkbox flip + execution-deviations note)
+- **Changed paths (exactly 2):** `src/templates/HomeSection.astro` (new), `projects/initial-site/tickets/tickets.md` (M — T-8 checkbox flip + execution-deviations note)
 
 ## Verdict: **Pass**
 
@@ -22,7 +22,7 @@ All 6 acceptance criteria verified against source **and** rendered output (throw
 
 ## Validation gates (all executed)
 
-1. **Scope integrity** — `git status --short` shows exactly `src/templates/` (new) + `projects/personal-website/tickets/...` (M, one-line flip + deviation note); scratch page removed; no earlier-ticket files touched. Pass.
+1. **Scope integrity** — `git status --short` shows exactly `src/templates/` (new) + `projects/initial-site/tickets/...` (M, one-line flip + deviation note); scratch page removed; no earlier-ticket files touched. Pass.
 2. **Typecheck** — `npx astro check` exit 0: 0 errors, 0 warnings, 2 hints (pre-existing T-2 zod `.url()` deprecations — known debt, not a regression). Pass.
 3. **Build** — `npm run build` exit 0 (scaffold, 1 page — template is unrouted until T-7, per the ticket's own NOTE). Pass.
 4. **Ticket verifier** — `rg 'GitHub|LinkedIn' src/templates/HomeSection.astro` matches (labels + markup). Literal `rg 'href="/resume|href="/about'` gate is **un-runnable by design** (REG-3/design §6.4: section links must be `sectionPath()`-derived — recorded as an execution deviation on the ticket, same precedence as T-5's `[FIXED per plan review]` gate). Rendered assertions were run against the scratch page: `href="/resume/"`, `href="/about/"`, `href="https://github.com/"`, `href="https://www.linkedin.com/"` all present with the trailing-slash canonical form. Pass.

@@ -1,9 +1,9 @@
 # QA Report — T-21: Lighthouse + accessibility + mobile QA pass
 
-- **Ticket:** T-21 (`projects/personal-website/tickets/tickets.md` — NF-1..3, HOME-5; design §11.3)
+- **Ticket:** T-21 (`projects/initial-site/tickets/tickets.md` — NF-1..3, HOME-5; design §11.3)
 - **Baseline:** `00540ca` (T-20); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (4):** `src/pages/404.astro` (M — decorative "404" moved to `::before` generated content: the one a11y finding), `package.json` / `package-lock.json` (transient `puppeteer-core` devDep added for the sweep then removed — net-zero), `projects/personal-website/tickets/tickets.md` (M — T-21 checkbox flip)
+- **Changed paths (4):** `src/pages/404.astro` (M — decorative "404" moved to `::before` generated content: the one a11y finding), `package.json` / `package-lock.json` (transient `puppeteer-core` devDep added for the sweep then removed — net-zero), `projects/initial-site/tickets/tickets.md` (M — T-21 checkbox flip)
 - **Method:** Lighthouse mobile against production preview (`npm run astro -- preview`, all four routes), puppeteer-core mobile sweep (375/390/430px), puppeteer keyboard Tab smoke. Audits: independent Lighthouse runs per route (`--only-categories=performance,accessibility`).
 
 ## Verdict: **Pass**

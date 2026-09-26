@@ -1,9 +1,9 @@
 # QA Report — T-15: Sitemap generation via @astrojs/sitemap
 
-- **Ticket:** T-15 (`projects/personal-website/tickets/tickets.md` — SEO-3, REG-5, US-11, HOME-7, R8)
+- **Ticket:** T-15 (`projects/initial-site/tickets/tickets.md` — SEO-3, REG-5, US-11, HOME-7, R8)
 - **Baseline:** `e442fad` (T-14); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 2):** `astro.config.mjs` (M — sitemap integration + explicit 404 filter), `projects/personal-website/tickets/tickets.md` (M — T-15 checkbox flip)
+- **Changed paths (exactly 2):** `astro.config.mjs` (M — sitemap integration + explicit 404 filter), `projects/initial-site/tickets/tickets.md` (M — T-15 checkbox flip)
 
 ## Verdict: **Pass**
 

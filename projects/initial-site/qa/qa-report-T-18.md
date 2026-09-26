@@ -1,9 +1,9 @@
 # QA Report — T-18: Build-time `_headers` generation
 
-- **Ticket:** T-18 (`projects/personal-website/tickets/tickets.md` — DEP-7, RES-5, SEO-12, US-7; design §10.1–§10.2)
+- **Ticket:** T-18 (`projects/initial-site/tickets/tickets.md` — DEP-7, RES-5, SEO-12, US-7; design §10.1–§10.2)
 - **Baseline:** `dd6fbaa` (T-17); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (3):** `scripts/gen-headers.mjs` (new), `package.json` (M — `build` chains `&& node scripts/gen-headers.mjs`; added `fonts:subset`), `projects/personal-website/tickets/tickets.md` (M — T-18 checkbox flip)
+- **Changed paths (3):** `scripts/gen-headers.mjs` (new), `package.json` (M — `build` chains `&& node scripts/gen-headers.mjs`; added `fonts:subset`), `projects/initial-site/tickets/tickets.md` (M — T-18 checkbox flip)
 
 ## Verdict: **Pass**
 

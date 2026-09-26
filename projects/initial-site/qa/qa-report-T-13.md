@@ -1,9 +1,9 @@
 # QA Report — T-13: Person JSON-LD on Home
 
-- **Ticket:** T-13 (`projects/personal-website/tickets/tickets.md` — HOME-6, SEO-1, NF-4, NF-5 boundary)
+- **Ticket:** T-13 (`projects/initial-site/tickets/tickets.md` — HOME-6, SEO-1, NF-4, NF-5 boundary)
 - **Baseline:** `48904af` (T-12); working-tree delta under test
 - **QA date:** 2026-09-23 · **Platform:** darwin
-- **Changed paths (exactly 4):** `src/config/person.ts` (new), `src/components/JsonLdPerson.astro` (new), `src/templates/HomeSection.astro` (M — top-of-body data block), `projects/personal-website/tickets/tickets.md` (M — T-13 checkbox flip)
+- **Changed paths (exactly 4):** `src/config/person.ts` (new), `src/components/JsonLdPerson.astro` (new), `src/templates/HomeSection.astro` (M — top-of-body data block), `projects/initial-site/tickets/tickets.md` (M — T-13 checkbox flip)
 
 ## Verdict: **Pass**
 

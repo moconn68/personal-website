@@ -1,6 +1,6 @@
 # UI/UX Design Specification — Personal Website v1
 
-> **Upstream:** `projects/personal-website/PRDs/PRD.md` (v1.2) · `projects/personal-website/designs/tech-design.md`
+> **Upstream:** `projects/initial-site/PRDs/PRD.md` (v1.2) · `projects/initial-site/designs/tech-design.md`
 > **Status:** Normative for visual/interaction implementation. All design tokens reproduce the tech design §6 byte-for-byte. Where the tech design left latitude, new details are marked `[UI adds]`.
 > **Date:** 2026-09-21 · **Author:** UI/UX Designer (AI SDLC)
 
