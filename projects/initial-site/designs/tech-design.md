@@ -2,7 +2,8 @@
 
 > **Upstream:** `projects/initial-site/PRDs/PRD.md` (v1.2) · `projects/initial-site/tickets/tickets.md` (T-1..T-24)
 > **Status:** Normative for implementation. Where this design and a ticket's *literal acceptance wording* conflict, this document **supersedes** the ticket wording — every such deviation is flagged inline with `[DEVIATION]`.
-> **Date:** 2026-09-21 · **Architect:** Software Architect (AI SDLC)
+> **Date:** 2026-09-21 · **Architect:** Software Architect (AI SDLC)  
+> **Project:** `initial-site` — designs the site initialization only. The Section Registry's extensibility is a constraint on *this* design (future sections must not require core edits), not a work item; the sections themselves are separate projects.
 
 ---
 

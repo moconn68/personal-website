@@ -2,7 +2,8 @@
 
 > **Upstream:** `projects/initial-site/PRDs/PRD.md` (v1.2) · `projects/initial-site/designs/tech-design.md`
 > **Status:** Normative for visual/interaction implementation. All design tokens reproduce the tech design §6 byte-for-byte. Where the tech design left latitude, new details are marked `[UI adds]`.
-> **Date:** 2026-09-21 · **Author:** UI/UX Designer (AI SDLC)
+> **Date:** 2026-09-21 · **Author:** UI/UX Designer (AI SDLC)  
+> **Project:** `initial-site` — specifies the four initial surfaces only. No screens, states, or tokens for the deferred sections (Projects, Blog, Now, Uses); those arrive with their own projects.
 
 ---
 

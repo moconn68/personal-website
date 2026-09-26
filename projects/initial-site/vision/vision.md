@@ -1,5 +1,11 @@
 # Personal Website (v1: Professional Identity Hub)
 
+> **Project:** `initial-site`. This directory holds the planning artifacts for *initializing the
+> site*: the four core surfaces, the Section Registry, and the deploy that puts a credible, current
+> professional presence online. It is the **first** project under `projects/`, not the whole site.
+> Everything listed in §9 is deliberately excluded here and becomes its **own project directory**
+> with its own vision doc, plan, and tickets — not a later phase of this one.
+
 ## 1. Elevator Pitch
 
 A personal website is the only web property an engineer fully owns — and most either read like résumé templates, rot from neglect, or stall because the projects behind them never get built. This site is a fast, mobile-perfect, machine-readable professional identity hub: a six-second-scan hero (name, role, domain, stack), a structured résumé page with downloadable PDF, and a human About page — built on an architecture where future sections (Projects, Blog, "Now") drop in as content, not as core code. It ships deliberately small so the content that makes it matter — real projects with case studies — gets built next, instead of being indefinitely postponed.
@@ -75,16 +81,20 @@ A small static site with four surfaces in v1:
 - **Subdomain permanence.** Launching on a free subdomain means a later rename plus redirects — small SEO disruption, acceptable while presence is low-urgency; revisit before any active search.
 - **"Links only" contact.** Some recruiters expect an email path. Fine at presence stage; revisit when search urgency rises (cloaked email or form then — never raw `mailto:`).
 
-## 9. Out of Scope (for v1)
+## 9. Out of Scope (for this project)
 
-- Projects showcase section and case studies — the single highest-value addition for v2.
+Each item below is **not a later phase of this project** — it is a separate project with its own
+directory under `projects/`, its own vision doc, and its own plan. `initial-site` is finished when
+the initial site is live with real content; the site's growth after that is tracked as new projects.
+
+- Projects showcase section and case studies — the first follow-on project; blocked on a finished case study.
 - Blog / technical writing.
-- Contact form or exposed email.
+- Contact form or exposed email — revisit when search urgency rises.
 - Custom domain and branding polish around it.
 - CMS or editorial workflow beyond markdown + git.
 - Analytics, tracking, or community features.
-- Anything requiring client-side JavaScript, a database, or a server.
+- Anything requiring client-side JavaScript, a database, or a server — a hard constraint, not a deferral.
 
 ## 10. Next Step
 
-Hand off to `project-planner` with this file (`projects/initial-site/vision/vision.md`) to turn it into an executable plan, with the v1 scope cap and the extensibility promise encoded as hard requirements.
+Hand off to `project-planner` with this file (`projects/initial-site/vision/vision.md`) to turn it into an executable plan, with the scope cap and the extensibility promise encoded as hard requirements. Each §9 item is a **new** project: start it with `inception` against a fresh `projects/<name>/` directory, not by reopening this one.

@@ -6,7 +6,7 @@
 |---|---|
 | Project | initial-site (frozen at PRD draft) |
 | Vision | [`projects/initial-site/vision/vision.md`(../vision/vision.md) |
-| PRD (v1.3) | [`projects/initial-site/PRDs/PRD.md`(../PRDs/PRD.md) |
+| PRD (v1.4) | [`projects/initial-site/PRDs/PRD.md`(../PRDs/PRD.md) |
 | Tickets (Sole tasking source — T-1 to T-24) | [`projects/initial-site/tickets/tickets.md`(../tickets/tickets.md) |
 | Tech Design | [`projects/initial-site/designs/tech-design.md`(../designs/tech-design.md) |
 | UI Spec | [`projects/initial-site/designs/ui-design.md`(../designs/ui-design.md) |
@@ -17,6 +17,8 @@
 **How to execute:** prompt the `orchestrator` with **"tell me the next unit of work and implement it"** at any time. It picks the next available unchecked ticket in `projects/initial-site/tickets/tickets.md` and runs the build-review-QA loop for that item. The checkbox state in the tickets file **is** tasking state — this plan file is background reference only and holds no checkboxes.
 
 ## 2. Design Summary
+
+**Project scope.** This plan covers `initial-site` only: the four surfaces, the Section Registry, and the first deploy, ending when the site is live with real content. The capabilities deferred in PRD §7 (Projects section, blog, custom domain, contact form, analytics) are **separate projects** with their own directories under `projects/` — they are not deferred tickets in this plan, and the registry's extensibility is what makes them cheap later, not a commitment to build them here.
 
 **Architecture.** The **Section Registry** is the keystone: a single Astro content collection (`src/content.config.ts`, Zod schema) plus two config modules (`src/config/sections.ts`, `src/config/templates.ts`). Navigation, page routes, layout shells, sitemap expectations, and SEO titles all derive from it. A single optional catch-all route (`src/pages/[...slug].astro`) generates one path per registered section via `getStaticPaths()` and dispatches to template components (`HOME / RESUME / ABOUT` ship in v1) through `import.meta.glob` keyed on filename. A registered section without its template component **fails the build** (loud, never a silent 404); unknown URLs hit a fixed `src/pages/404.astro` (there is no error-template dispatch). New sections drop in as two files — a self-registering content file (frontmatter `slug`/`order`/`navLabel`/`template`) + a template component — with zero nav/layout/sitemap/schema edits (proven by T-22's stub-Now test).
 

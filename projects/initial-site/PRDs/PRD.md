@@ -1,7 +1,9 @@
 # PRD: Personal Website — v1 Professional Identity Hub
 
 > **Upstream source:** [vision.md](../vision/vision.md)  
-> **PRD version:** 1.3  
+> **Project:** `initial-site` — the site-initialization project. Everything in §7 is excluded from
+> this PRD and becomes a separate project directory under `projects/`; see §11.1.  
+> **PRD version:** 1.4  
 > **Date:** 2026-09-21  
 > **Author:** Product Manager (AI SDLC)
 
@@ -164,9 +166,12 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 
 ---
 
-## 7. Out of Scope (v1)
+## 7. Out of Scope (this project)
 
-> Mirrors vision §9, plus additional road-not-taken items.
+> Mirrors vision §9, plus additional road-not-taken items. **None of these are later phases of
+> `initial-site`** — each is a separate project under `projects/` with its own PRD, tickets, and
+> plan. Requirements listed here are deliberately absent from the ticket breakdown in
+> `projects/initial-site/tickets/tickets.md`, not deferred within it.
 
 | Item | Why deferred |
 |---|---|
@@ -268,14 +273,18 @@ Derived from the three target personas in the vision document:
 | **OQ-5** | **Staleness policy — not a concern.** Owner updates whenever they have updates; no forced cadence, no date-stamping, no "90-day" rule. | "Stale ≠ abandoned" metric removed from §8. No date-stamp requirements added. |
 | **OQ-6** | **Subdomain alias — `mattoconn`.** Desired subdomain identity is `mattoconn`. Hosting research (2026) recommends **Cloudflare Pages**: unlimited bandwidth/requests, no commercial restriction, `_headers` for cache control; Vercel Hobby is personal/non-commercial only with metered bandwidth. | DEP-1/DEP-5 encode Cloudflare Pages (`mattoconn.pages.dev`, availability checked at deploy). §9 hosting row updated. |
 
-### 11.1 V2 Backlog (non-blocking for v1)
+### 11.1 Follow-on Projects (not this project)
 
-| Item | Status | Notes |
-|---|---|---|
-| First case-study project: **parrotlet** | Blocked on: public repo + working demo | Small scope; can be finished quickly when owner is ready. Highest-value v2 addition. |
-| Projects showcase section | Blocked on: parrotlet case study content | Registry supports it; section registration is a 2-file change per extensibility promise. |
-| Custom domain | Deferred | Single largest future SEO lever. Cheap, consciously later. |
-| Now section / update cadence | Deferred | Owner may add a dated "Now" page in v2 if update rhythm emerges organically. |
+> These are **separate projects**, each with its own directory under `projects/`, vision doc, and
+> plan. They are recorded here only so the site roadmap is visible in one place. Do not add them as
+> tickets to `projects/initial-site/tickets/tickets.md` — start a new project directory instead.
+
+| Item | Own project name | Status | Notes |
+|---|---|---|---|
+| First case-study project: **parrotlet** | (evidence-gathering, not site work) | Blocked on: public repo + working demo | Small scope; finish it before the Projects section is worth building. |
+| Projects showcase section | e.g. `projects-section` | Blocked on: parrotlet case study content | Registry supports it; section registration is a 2-file change per the extensibility promise. |
+| Custom domain | e.g. `custom-domain` | Deferred | Single largest future SEO lever. Cheap, consciously later. |
+| Now section / update cadence | e.g. `now-section` | Deferred | Add if an update rhythm emerges organically. |
 
 ---
 
@@ -287,6 +296,7 @@ Derived from the three target personas in the vision document:
 | 1.1 | 2026-09-21 | PM (AI SDLC) | Resolved OQ-1–OQ-6: résumé → static PDF link, parrotlet as first case study, SEO strengthened, staleness dropped, subdomain `mattoconn` |
 | 1.2 | 2026-09-21 | Project Planner | Folded technical research into PRD: Cloudflare Pages decided (DEP-1), AI-crawler robots policy (SEO-4), canonical + noindex duplicate-host policy (SEO-11/12), PDF cache headers (DEP-7), Astro 7 Content Layer API nomenclature (§9) |
 | 1.3 | 2026-09-21 | Project Planner | Extensibility wording aligned with implemented mechanism (REG-6/US-9/§8): the content file *is* the registration entry (frontmatter drives the registry); a per-section template component is also required. Zero nav/layout/sitemap/schema changes unchanged. |
+| 1.4 | 2026-09-25 | Project Planner | Scope framing only — no requirement added, removed, or reworded. Named the project `initial-site`; retitled §7 and §11.1 so deferred capabilities are separate project directories under `projects/`, not phases of this one. Ticket scope unchanged. |
 
 ---
 

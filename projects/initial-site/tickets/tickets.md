@@ -1,5 +1,6 @@
 # Tickets — Personal Website v1 (Matthew O'Connell)
 
+> **Project:** `initial-site` — site initialization. These tickets cover exactly that: the four surfaces, the Section Registry, and the first deploy. The capabilities deferred in PRD §7 are **not** in this file and are not "later tickets" — each is a separate project directory under `projects/` with its own tickets file. Do not extend this file's checklist to cover them.
 > **Source of truth:** `projects/initial-site/PRDs/PRD.md` (v1.2). Supersedes the vision doc where they conflict.
 > **Read before executing:** this file is the Orchestrator's **sole tasking source**. `projects/initial-site/plans/plan.md` is reference only.
 > **Execution mode:** the checklist in Part A is strictly **topologically ordered** — a single lazy pass from T-1 to T-24 is a valid execution order. Every ticket's dependencies appear strictly before it in the file.
