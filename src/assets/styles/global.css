@@ -1,11 +1,11 @@
-/* Global design tokens + minimal reset (T-6).
-   All token values are byte-exact normative per tech design §6.2–§6.4
-   (mirrored verbatim by UI spec §2). Per-component styling lives in each
-   .astro <style> block (Astro auto-scopes); this file is global only.
-   @font-face blocks (T-17): self-hosted subsets, font-display: swap. */
+/* Global design tokens + minimal reset.
+   These token values are the single source of truth for the design system.
+   Per-component styling lives in each .astro <style> block (Astro auto-scopes);
+   this file is global only.
+   @font-face blocks: self-hosted subsets, font-display: swap. */
 
-/* T-17: self-hosted IBM Plex Sans subsets (see scripts/subset-fonts.mjs).
-   font-display: swap = content-first (NF-1); system-ui fallbacks downstream
+/* Self-hosted IBM Plex Sans subsets (see scripts/subset-fonts.mjs).
+   font-display: swap = content-first; system-ui fallbacks downstream
    in --font-sans cover any glyph the subset omits. */
 @font-face {
   font-family: 'IBM Plex Sans';
@@ -23,7 +23,7 @@
 }
 
 :root {
-  /* §6.2 color palette */
+  /* color palette */
   --color-bg: #fafaf9;
   --color-text: #18181b;
   --color-muted: #52525b;
@@ -32,7 +32,7 @@
   --color-border: #e4e4e7;
   --color-surface: #ffffff;
 
-  /* §6.3 typography scale */
+  /* typography scale */
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --fs-hero: clamp(2rem, 1.5rem + 2.6vw, 3.25rem);
   --fs-h2: clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem);
@@ -44,7 +44,7 @@
   --lh-body: 1.6;
   --measure: 65ch;
 
-  /* §6.4 spacing & layout */
+  /* spacing & layout */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -58,7 +58,7 @@
   --touch-min: 44px;
 }
 
-/* --- minimal reset (§6.1) --- */
+/* --- minimal reset --- */
 
 *,
 *::before,
@@ -87,7 +87,7 @@ svg {
   height: auto;
 }
 
-/* Heading baseline: weight 600 (UI spec §2.2), zero margin, default leading.
+/* Heading baseline: weight 600, zero margin, default leading.
    Templates own the size tokens (--fs-hero / --fs-h2) and per-heading leading. */
 h1,
 h2,
@@ -100,7 +100,7 @@ h6 {
   line-height: var(--lh-h2, 1.2);
 }
 
-/* --- accessibility baseline (§6.5) --- */
+/* --- accessibility baseline --- */
 
 /* Visible focus ring for keyboard and pointer input on every interactive
    element. Never outline: none. */
@@ -114,7 +114,7 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
-/* prefers-reduced-motion guard (UI spec §5.5 / §8): v1 ships zero animations,
+/* prefers-reduced-motion guard: v1 ships zero animations,
    so this only future-proofs — no transition/animation is disabled today. */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -1,18 +1,17 @@
-// T-20: Static-output verification gate (design §11.1). Walks dist/** and exits
-// non-zero on any violation. Plain Node ESM, zero runtime deps.
+// Static-output verification gate. Walks dist/** and exits non-zero on any
+// violation. Plain Node ESM, zero runtime deps.
 //
 // Rules:
-//   1. Functional-JS markers (NF-5). Any <script> with src=, or a non-empty
-//      inline body that isn't type="application/ld+json" (data block), plus any
+//   1. Functional-JS markers. Any <script> with src=, or a non-empty inline
+//      body that isn't type="application/ld+json" (data block), plus any
 //      event-handler attribute (onclick=, onload=, ...) anywhere in the page.
-//   2. Third-party origin (NF-4). In load-bearing HTML attrs (src/srcset/href/
-//      poster/action) and CSS url() references, any absolute-URL/protocol-
-//      relative host that isn't SITE_ORIGIN fails. <a href> anchors are exempt
-//      (outbound links by feature, HOME-3); JSON-LD lives in exempted data
-//      blocks and is never fetched.
-//   3. Presence asserts (DEP-3, RES-1, SEO-3): 404.html, robots.txt, both
-//      sitemap files, the résumé page's href="/resume.pdf" anchor, and the
-//      _headers cache rule (guards T-18).
+//   2. Third-party origin. In load-bearing HTML attrs (src/srcset/href/poster/
+//      action) and CSS url() references, any absolute-URL/protocol-relative host
+//      that isn't SITE_ORIGIN fails. <a href> anchors are exempt (outbound
+//      links are a feature); JSON-LD lives in exempted data blocks and is never
+//      fetched.
+//   3. Presence asserts: 404.html, robots.txt, both sitemap files, the résumé
+//      page's href="/resume.pdf" anchor, and the _headers cache rule.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
@@ -97,7 +96,7 @@ for (const file of htmlFiles) {
       const [attr, , , value] = [a[0], a[1], a[2], a[3]];
       void attr;
       const attrName = a[1];
-      if (tagName === 'a' && attrName === 'href') continue; // outbound links, HOME-3
+      if (tagName === 'a' && attrName === 'href') continue; // outbound links are a feature
       for (const candidate of value.split(',').map((s) => s.trim())) {
         const host = extractHost(candidate);
         if (wouldLoad(host)) fail(`${file}: <${tagName} ${attrName}> → ${host}`);

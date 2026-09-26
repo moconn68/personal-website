@@ -1,13 +1,13 @@
-// T-18: Emit dist/_headers AFTER `astro build` (chained in package.json).
+// Emit dist/_headers AFTER `astro build` (chained in package.json).
 //
 // Detection: CF_PAGES_BRANCH. Production build <=> this env var is absent
 // (local builds) or equals the production branch `main`. Any other set value
 // (PR branch names, preview branches, `preview`) <=> non-canonical host <=>
 // emit the global noindex rule. CF_PAGES_URL is REJECTED as a discriminator:
-// Cloudflare sets it on production deploys too (design §10.1).
+// Cloudflare sets it on production deploys too.
 //
 // The noindex rule keeps pages crawlable on preview hosts so the noindex
-// signal takes effect (SEO-12) — robots.txt must stay Disallow-free.
+// signal takes effect — robots.txt must stay Disallow-free.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 

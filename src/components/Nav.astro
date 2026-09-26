@@ -1,5 +1,5 @@
 ---
-// T-5: Registry-driven navigation. Every link, its label, and its order derive
+// Registry-driven navigation. Every link, its label, and its order derive
 // solely from the sections registry (src/config/sections.ts): getSections()
 // returns entries sorted by `order` (home first), and sectionPath() is the
 // single slug→URL mapping (home → '/', others → '/{slug}/' with trailing
@@ -57,7 +57,7 @@ const pathname = Astro.url.pathname;
     min-height: var(--touch-min, 44px);
     min-width: var(--touch-min, 44px);
     padding-inline: var(--space-2, 0.5rem);
-    font-weight: 600; /* nav weight per UI spec §2.2 */
+    font-weight: 600; /* heavier than body text for nav affordance */
     color: var(--color-text, #18181b);
     text-decoration: underline; /* link affordance is never color alone */
     text-decoration-thickness: 1px;
@@ -84,7 +84,7 @@ const pathname = Astro.url.pathname;
   }
 
   /* desktop: inline horizontal row spanning full width — brand (home) on the
-     left, remaining items on the right (UI spec §4.1). Registry order puts
+     left, remaining items on the right. Registry order puts
      home first; space-between pushes the rest to the right edge. */
   @media (min-width: 768px) {
     ul {

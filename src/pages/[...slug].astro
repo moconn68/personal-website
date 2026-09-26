@@ -1,5 +1,5 @@
 ---
-// T-7: Registry-driven route with template dispatch (design §5.1, §5.2).
+// Registry-driven route with template dispatch.
 // One optional catch-all `[...slug]` generates one route per registered
 // section: home → '/' (`params: { slug: undefined }`), others → '/{slug}/'
 // (trailingSlash: 'always' — the canonical form shared by nav/canonical/
@@ -8,11 +8,10 @@
 // keyed by templateToComponentName(template) (PascalCase + `Section` suffix).
 // A registered section whose template component is missing FAILS the build —
 // loud and typed; a registry pointing at nothing is a programming error, not
-// a 404 (REG-6). A new section therefore needs zero changes to this file — the
-// glob picks up new template components automatically (T-22 proves it).
-// Every template receives entry + the full ordered registry (design §5.1
-// contract). No `path` prop to BaseLayout (T-6 deviation — Nav reads
-// Astro.url.pathname itself).
+// a 404. A new section therefore needs zero changes to this file — the
+// glob picks up new template components automatically.
+// Every template receives entry + the full ordered registry (the template
+// contract). No `path` prop to BaseLayout — Nav reads Astro.url.pathname itself.
 import { getSections, sectionPath, type SectionEntry } from '../config/sections';
 import { templateToComponentName } from '../config/templates';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -31,13 +30,13 @@ const sections = await getSections();
 const home = sections.find((section) => section.data.slug === 'home');
 if (!home) throw new Error('Registry must contain a "home" section.');
 
-// Title pattern per design §5.2 / SEO-6: home → home.title; others →
+// Title pattern: home → home.title; others →
 // `{home.title} — {entry.data.title}` (mechanical off the registry).
 const title = entry.data.slug === 'home' ? entry.data.title : `${home.data.title} — ${entry.data.title}`;
 const currentPath = sectionPath(entry);
 
 // Template dispatch via eager glob keyed by templateToComponentName(template).
-// The `{ default: any }` cast is the design §5.1 sanction — Astro's component
+// The `{ default: any }` cast is required — Astro's component
 // factory type is not exposed via a public exports path. A registered section
 // whose component is missing throws here → the build fails loudly.
 const templates = import.meta.glob('../templates/*.astro', { eager: true }) as Record<

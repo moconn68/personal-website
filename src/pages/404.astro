@@ -1,11 +1,10 @@
 ---
-// T-11: Custom 404 page (UI §3.4). A fixed page — NOT a registry section, no
-// error-template dispatch (tech design §5.3; the enum has no `error` value).
-// Decorative "404" is aria-hidden (not read by screen readers) above the h1;
-// single primary action reuses the §6.4 `.btn-download` token to go home.
-// Ships `<meta name="robots" content="noindex">` (excluded from the sitemap
-// via the T-15 filter). Title/description here are self-contained until T-12's
-// Seo component refactors the head. Zero client JS.
+// Custom 404 page. A fixed page — NOT a registry section, no error-template
+// dispatch (the template enum has no `error` value). Decorative "404" is
+// aria-hidden (not read by screen readers) above the h1; single primary action
+// reuses the `.btn-download` token to go home. Ships
+// `<meta name="robots" content="noindex">` (excluded from the sitemap via the
+// sitemap filter). Title/description here are self-contained. Zero client JS.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { sectionPath } from '../config/sections';
 import { getSections } from '../config/sections';
@@ -43,10 +42,10 @@ if (!home) {
     padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
   }
 
-  /* Decorative code: large, subtle, aria-hidden (UI §3.4) — not read by
+  /* Decorative code: large, subtle, aria-hidden — not read by
      screen readers, not selectable. Rendered as ::before generated content so
-     there's no text node for axe/Lighthouse contrast checks (T-21 a11y fix);
-     the visual is byte-identical to the normative --color-border watermark. */
+     there's no text node for axe/Lighthouse contrast checks;
+     the visual is byte-identical to the --color-border watermark. */
   .notfound-code {
     margin: 0;
     font-size: var(--fs-hero, clamp(2rem, 1.5rem + 2.6vw, 3.25rem));
@@ -58,7 +57,7 @@ if (!home) {
     content: '404';
   }
 
-  /* h1 at --fs-h2, weight 600 (UI §3.4 / §2.2). */
+  /* h1 at --fs-h2, weight 600. */
   .notfound h1 {
     font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
     line-height: var(--lh-h2, 1.2);
@@ -75,7 +74,7 @@ if (!home) {
     margin-block-start: var(--space-3, 0.75rem);
   }
 
-  /* .btn-download token (tech design §6.4), duplicated from ResumeSection —
+  /* .btn-download token, duplicated from ResumeSection —
      Astro scoped styles are per-component, so each owner defines it. */
   .btn-download {
     display: inline-flex;

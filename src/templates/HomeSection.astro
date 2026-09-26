@@ -1,12 +1,13 @@
 ---
-// T-8: Home scan-page template (UI §3.1). Six-second identity parse: the name
-// as <h1>, role-in-domain + primary stack (rendered from the section's markdown
-// body) above the fold on a 375px viewport, a condensed muted proof line from
-// `data.description`, and a hunt-free link row. Every recipient-true fact and
-// every section link is read from the registry — GitHub/LinkedIn come from the
-// typed `github`/`linkedin` frontmatter, Résumé/About from `sectionPath()` of
-// the corresponding registry entries (REG-3: never literal `/resume`).
-// Identity copy is HUMAN COPY placeholder until T-23; JSON-LD lands at T-13.
+// Home scan-page template. Six-second identity parse: the name as <h1>,
+// role-in-domain + primary stack (rendered from the section's markdown body)
+// above the fold on a 375px viewport, a condensed muted proof line from
+// `data.description`, and a hunt-free link row. Every fact and every section
+// link is read from the registry — GitHub/LinkedIn come from the typed
+// `github`/`linkedin` frontmatter, Résumé/About from `sectionPath()` of the
+// corresponding registry entries (never a literal `/resume` path).
+// Identity copy is a HUMAN COPY placeholder until the owner supplies it; the
+// Person JSON-LD block is rendered by JsonLdPerson.astro.
 // Zero client JS: no script tags, no event-handler attributes, no style=.
 import { render } from 'astro:content';
 import { sectionPath, type SectionEntry } from '../config/sections';
@@ -26,7 +27,7 @@ const resumeEntry = sections.find((s) => s.data.slug === 'resume');
 const aboutEntry = sections.find((s) => s.data.slug === 'about');
 
 // Registry-derived internal links — the home scan page surfaces these two
-// sections prominently; unregistering one removes its link (REG-3 discipline).
+// sections prominently; unregistering one removes its link.
 const registryLinks = [resumeEntry, aboutEntry]
   .filter((s): s is SectionEntry => Boolean(s))
   .map((s) => ({ href: sectionPath(s), label: s.data.navLabel }));
@@ -71,7 +72,7 @@ const registryLinks = [resumeEntry, aboutEntry]
 </section>
 
 <style>
-  /* Hero: left-aligned single-column stack (UI §3.1, tech design §6.4).
+  /* Hero: left-aligned single-column stack.
      clamp() rhythm keeps the full parse above the fold on a 375px viewport. */
   .hero {
     display: flex;
@@ -81,7 +82,7 @@ const registryLinks = [resumeEntry, aboutEntry]
     padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
   }
 
-  /* Watch W-6 (T-6 QA): the home h1 overrides the global heading baseline
+  /* The home h1 overrides the global heading baseline
      with the hero tokens — --fs-hero size + --lh-hero: 1.05 leading. */
   .hero h1 {
     font-size: var(--fs-hero, clamp(2rem, 1.5rem + 2.6vw, 3.25rem));
@@ -89,9 +90,9 @@ const registryLinks = [resumeEntry, aboutEntry]
     margin-block-end: var(--space-1, 0.25rem);
   }
 
-  /* Rendered markdown body (UI §3.1 content slots): first paragraph = role-in-
+  /* Rendered markdown body: first paragraph = role-in-
      domain (--fs-lead, 400), second = primary stack (--fs-body, 400). Real
-     selectable text — no image/CSS-only text (HOME-1). */
+     selectable text — no image/CSS-only text. */
   .hero-lead p {
     margin: 0;
     line-height: var(--lh-body, 1.6);
@@ -105,8 +106,8 @@ const registryLinks = [resumeEntry, aboutEntry]
     font-size: var(--fs-body, 1rem);
   }
 
-  /* Proof line (HOME-2): muted, small — doubles as the meta description
-     (frontmatter `description` ≤160 chars, SEO-7). */
+  /* Proof line: muted, small — doubles as the meta description
+     (frontmatter `description` ≤160 chars). */
   .hero-proof {
     margin: 0;
     margin-block-start: var(--space-4, 1rem);
@@ -114,8 +115,8 @@ const registryLinks = [resumeEntry, aboutEntry]
     color: var(--color-muted, #52525b);
   }
 
-  /* Link row (UI §3.1): touch targets ≥44px, single-column wrap on mobile,
-     one horizontal row ≥768px. No competing decorative imagery (HOME-4). */
+  /* Link row: touch targets ≥44px, single-column wrap on mobile,
+     one horizontal row ≥768px. No competing decorative imagery. */
   .link-row {
     display: flex;
     flex-wrap: wrap;
@@ -152,7 +153,7 @@ const registryLinks = [resumeEntry, aboutEntry]
     text-decoration-thickness: 2px;
   }
 
-  /* Decorative icons: aria-hidden, small, inert (UI §3.1 link-row decisions). */
+  /* Decorative icons: aria-hidden, small, inert. */
   .link-chip svg {
     width: 20px;
     height: 20px;

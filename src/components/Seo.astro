@@ -1,13 +1,13 @@
 ---
-// T-12: SEO head component (SEO-6/7/8/11). Composes into BaseLayout's
-// `<slot name="head" />`: unique page <title>, ≤160-char meta description,
-// Open Graph tags (og:title/og:description/og:type=website/og:url), and a
-// self-referencing absolute canonical computed from SITE_URL (T-4). One
-// canonical host — preview hosts emit cross-host canonicals pointing at the
-// production site (correct; previews are additionally noindexed by T-18).
-// Canonical href and og:url are byte-identical to the sitemap/robots URLs
-// (single trailing-slash policy via `path()`/`absoluteUrl()` — R8, SEO-11).
-// og:image is deliberately omitted (no stock imagery; HOME-4).
+// SEO head component. Composes into BaseLayout's `<slot name="head" />`:
+// unique page <title>, ≤160-char meta description, Open Graph tags
+// (og:title/og:description/og:type=website/og:url), and a self-referencing
+// absolute canonical computed from SITE_URL. One canonical host — preview hosts
+// emit cross-host canonicals pointing at the production site (correct; previews
+// are additionally noindexed by the generated _headers rule). Canonical href
+// and og:url are byte-identical to the sitemap/robots URLs (single
+// trailing-slash policy via `path()`/`absoluteUrl()`).
+// og:image is deliberately omitted (no stock imagery).
 // The 404 page keeps static head content (not a registry section — no entry).
 interface Props {
   title: string;

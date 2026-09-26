@@ -11,8 +11,8 @@ const sections = defineCollection({
     navLabel: z.string().min(1),
     order: z.number().int().positive(),
     template: z.enum(TEMPLATES),
-    description: z.string().min(1).max(160), // doubles as meta description (SEO-7); ≤160 is enforced at the boundary
-    github: z.string().url().optional(), // home-only; placeholder URL pattern until T-23 (§4.4)
+    description: z.string().min(1).max(160), // doubles as meta description; ≤160 is enforced at the boundary
+    github: z.string().url().optional(), // home-only; placeholder URL pattern until the owner supplies the real one
     linkedin: z.string().url().optional(), // home-only
   }),
 });

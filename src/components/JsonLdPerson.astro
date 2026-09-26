@@ -1,10 +1,10 @@
 ---
-// T-13: Person JSON-LD data block (design §8.3) — rendered at the TOP of the
-// Home template body (inside <main>), NOT in <head> (head-placement would force
-// per-template wiring into the route, violating REG-6). Crawlers parse JSON-LD
-// anywhere in the document. This <script> is a DATA block, not client-side
-// JavaScript — T-20's scanner must exempt type="application/ld+json". is:inline
-// guarantees Astro leaves the block untouched; set:html emits raw JSON.
+// Person JSON-LD data block — rendered at the TOP of the Home template body
+// (inside <main>), NOT in <head> (head-placement would force per-template wiring
+// into the route). Crawlers parse JSON-LD anywhere in the document. This
+// <script> is a DATA block, not client-side JavaScript — the static-output gate
+// must exempt type="application/ld+json". is:inline guarantees Astro leaves the
+// block untouched; set:html emits raw JSON.
 import { getPersonData } from '../config/person';
 
 const p = await getPersonData();

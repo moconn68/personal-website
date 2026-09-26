@@ -1,14 +1,14 @@
-// T-17 one-shot: subset the vendored IBM Plex Sans TTFs to the glyphs the site
+// One-shot: subset the vendored IBM Plex Sans TTFs to the glyphs the site
 // actually renders, emit WOFF2 into src/assets/fonts under the pinned names the
 // global.css @font-face rules reference. NOT part of the build — run manually,
-// and re-run whenever copy changes (T-23) after rebuilding:
+// and re-run whenever copy changes, after rebuilding:
 //
 //   npm run build && node scripts/subset-fonts.mjs
 //
 // Tool chosen: `subset-font` (pure Node/WASM) instead of `glyphhanger`, because
 // the latter shells out to Python's fonttools+brotli, which isn't installed on
 // this machine. Output is identical in spirit (same charset, woff2 target) and
-// the design explicitly allows either tool. TTF sources stay committed under
+// either tool is acceptable. TTF sources stay committed under
 // scripts/font-src/ so subsetting is hermetic/repeatable.
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';

@@ -1,9 +1,9 @@
-// T-16: Prerendered robots.txt endpoint (design §5.4, SEO-4). Global allow-all
-// plus named Allow blocks for the AI-assistant crawlers that matter — research
-// finding (SEO-4): blanket disallows silently block AI visibility; named bots
-// are allowed explicitly. ZERO Disallow rules anywhere (pages stay crawlable).
-// Sitemap line reads SITE_URL (T-4) and targets @astrojs/sitemap's exact index
-// filename (`sitemap-index.xml`) — byte-identical with the built file.
+// Prerendered robots.txt endpoint. Global allow-all plus named Allow blocks for
+// the AI-assistant crawlers that matter — blanket disallows silently block AI
+// visibility; named bots are allowed explicitly. ZERO Disallow rules anywhere
+// (pages stay crawlable). Sitemap line reads SITE_URL and targets
+// @astrojs/sitemap's exact index filename (`sitemap-index.xml`) — byte-identical
+// with the built file.
 import type { APIRoute } from 'astro';
 import { SITE_URL } from '../config/site';
 

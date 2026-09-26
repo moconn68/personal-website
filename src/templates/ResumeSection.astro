@@ -1,11 +1,11 @@
 ---
-// T-9: Résumé landing template (UI §3.2). A purposefully spare surface:
-// `h1` = registry title, one muted context line from `data.description`, and a
-// single primary action — `.btn-download` → `/resume.pdf`. No résumé content
-// is authored or rendered in HTML (RES-1, OQ-1): the PDF is the résumé.
-// The button works even before T-24 ships the PDF (404 until then — expected).
-// Context copy is HUMAN COPY placeholder until T-23. Zero client JS.
-// Props contract per design §5.1: entry + full ordered registry.
+// Résumé landing template. A purposefully spare surface: `h1` = registry
+// title, one muted context line from `data.description`, and a single primary
+// action — `.btn-download` → `/resume.pdf`. No résumé content is authored or
+// rendered in HTML: the PDF is the résumé. The button works even before the
+// PDF is committed (404 until then — expected). Context copy is a HUMAN COPY
+// placeholder until the owner supplies it. Zero client JS.
+// Props contract: entry + full ordered registry.
 import { type SectionEntry } from '../config/sections';
 import JsonLdProfilePage from '../components/JsonLdProfilePage.astro';
 
@@ -27,7 +27,7 @@ const { entry } = Astro.props;
 </section>
 
 <style>
-  /* Single-column left-aligned stack (UI §3.2); same clamp() rhythm as the
+  /* Single-column left-aligned stack; same clamp() rhythm as the
      home hero for visual consistency across section pages. */
   .resume {
     display: flex;
@@ -37,7 +37,7 @@ const { entry } = Astro.props;
     padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
   }
 
-  /* h1 at --fs-h2, weight 600 (UI §3.2 / §2.2). */
+  /* h1 at --fs-h2, weight 600. */
   .resume h1 {
     font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
     line-height: var(--lh-h2, 1.2);
@@ -59,7 +59,7 @@ const { entry } = Astro.props;
     margin-block-start: var(--space-3, 0.75rem);
   }
 
-  /* .btn-download token (tech design §6.4): the unambiguous primary action —
+  /* .btn-download token: the unambiguous primary action —
      accent background, surface text 600, 48px min-height, 1.5rem padding,
      radius 8px, focus ring visible. No other CTAs on this page. */
   .btn-download {

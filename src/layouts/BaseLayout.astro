@@ -1,12 +1,12 @@
 ---
-// T-6: Shared page chrome for every route. Semantic landmarks
-// (<header>/<nav>/<main>/<footer> — SEO-9, NF-3), a named head slot for
-// per-route SEO content (filled by T-12's Seo component), and a default body
-// slot carrying the section template. The footer copyright name is read from
-// the registry home entry — never hardcoded. Zero client JS: no executable
-// script tags, no event-handler attributes, no style= attributes. Styling
-// lives in the scoped block below plus src/assets/styles/global.css tokens.
-// No `path` prop, no props to Nav — Nav reads Astro.url.pathname itself (T-5).
+// Shared page chrome for every route. Semantic landmarks
+// (<header>/<nav>/<main>/<footer>), a named head slot for per-route SEO
+// content (filled by the Seo component), and a default body slot carrying the
+// section template. The footer copyright name is read from the registry home
+// entry — never hardcoded. Zero client JS: no executable script tags, no
+// event-handler attributes, no style= attributes. Styling lives in the scoped
+// block below plus src/assets/styles/global.css tokens.
+// No `path` prop, no props to Nav — Nav reads Astro.url.pathname itself.
 import Nav from '../components/Nav.astro';
 import { getSections } from '../config/sections';
 import '../assets/styles/global.css';
@@ -24,12 +24,12 @@ const year = new Date().getFullYear();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Per-route <title>/meta/canonical land here via the head slot (T-12's Seo). -->
+    <!-- Per-route <title>/meta/canonical land here via the head slot (Seo). -->
     <slot name="head" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
-    <!-- Landmarks (SEO-9, NF-3): <header> chrome, <nav> emitted by Nav.astro (T-5), <main id="main"> slot, <footer> -->
+    <!-- Landmarks: <header> chrome, <nav> emitted by Nav.astro, <main id="main"> slot, <footer> -->
     <header>
       <Nav />
     </header>
@@ -43,7 +43,7 @@ const year = new Date().getFullYear();
 </html>
 
 <style>
-  /* Skip link (UI spec §4.3): visually hidden first element in <body>,
+  /* Skip link: visually hidden first element in <body>,
      revealed on focus at the top-left of the viewport (WCAG 2.4.1). */
   .skip-link {
     position: absolute;
@@ -63,8 +63,8 @@ const year = new Date().getFullYear();
     top: var(--gutter, 1.25rem);
   }
 
-  /* Container constraint (§6.4 / UI §4.5): centered at --container with
-     gutter-side padding; 375px floor with no horizontal scroll (NF-2). */
+  /* Container constraint: centered at --container with
+     gutter-side padding; 375px floor with no horizontal scroll. */
   header,
   main,
   footer {
@@ -73,7 +73,7 @@ const year = new Date().getFullYear();
     padding-inline: var(--gutter, 1.25rem);
   }
 
-  /* Footer (UI §4.2): one muted small line, --space-6 above / --space-4 below,
+  /* Footer: one muted small line, --space-6 above / --space-4 below,
      left-aligned to match content alignment. */
   footer {
     padding-block-start: var(--space-6, 2rem);
