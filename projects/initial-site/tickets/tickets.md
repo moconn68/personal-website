@@ -65,7 +65,7 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
 - [x] **T-20: Static-output verification script (zero-JS + zero third-party)** — `scripts/verify-static.mjs` scans `dist/` for functional JS and external requests while exempting JSON-LD data blocks; ships ready for the CI gate (the Cloudflare build-command retrofit is owned by T-19, which needs a live project). (NF-4, NF-5, DEP-3 | deps: T-7, T-8, T-10, T-11, T-15, T-16, T-17, T-18 | M | scripts/)
 - [x] **T-25: Delete résumé section from the registry (content file, template, enum value)** — remove `src/content/sections/resume.md`, delete `src/templates/ResumeSection.astro`, drop `'resume'` from `TEMPLATES`, and re-point `about.md` to `order: 2`; nav, routes, and sitemap follow automatically. (RES-X1 | deps: T-3, T-2, T-7 | M | content/)
 - [x] **T-26: Remove résumé link + ProfilePage JSON-LD wiring from Home and shared modules** — drop the résumé entry from the Home link row, delete `JsonLdProfilePage.astro`, rebase the `.btn-download` token to `.btn-primary` on the 404, and scrub vestigial résumé comments; guard that Person JSON-LD survives. (RES-X1, RES-X4, HOME-3 | deps: T-25, T-8, T-13 | S | astro/)
-- [ ] **T-27: Strip PDF cache rule + résumé asserts from build and verification scripts** — `gen-headers.mjs` writes only the preview noindex rule (and nothing on production), `verify-static.mjs` gains negative résumé asserts, `subset-fonts.mjs` drops the deleted page from its sweep. (RES-X1, RES-X3 | deps: T-25, T-18, T-20 | M | scripts/)
+- [x] **T-27: Strip PDF cache rule + résumé asserts from build and verification scripts** — `gen-headers.mjs` writes only the preview noindex rule (and nothing on production), `verify-static.mjs` gains negative résumé asserts, `subset-fonts.mjs` drops the deleted page from its sweep. (RES-X1, RES-X3 | deps: T-25, T-18, T-20 | M | scripts/)
 - [ ] **T-28: Post-removal regression + accessibility/mobile re-verification** — rebuild, re-run the zero-JS gate, assert the registry returns exactly `home` + `about` with no dead résumé route, sitemap/canonical/robots consistency, and redo the a11y + 375/390/430px sweep on the two-route site. (RES-X2, NF-1..NF-3 | deps: T-25, T-26, T-27, T-12, T-17 | M | qa/)
 - [ ] **T-19: Cloudflare Pages deployment (git-push CI/CD)** — connect repo, production branch, build command, output `dist`, subdomain `mattoconn.pages.dev`, production env `PUBLIC_SITE_URL`, then retrofit the CI build command to `npm run build && npm run verify`. (US-12, US-13, US-14 | deps: T-18, T-28 | M | deploy/)
 - [x] **T-21: Lighthouse + accessibility + mobile QA pass** — mobile-preset Lighthouse (load <2s over throttled network), WCAG AA/a11y audit, 375–430px manual sweep on all pages. (US-3 | deps: T-8, T-9, T-10, T-11, T-12, T-17 | M | qa/)
@@ -564,6 +564,77 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
   wiring needs no edit. The `T-20` note about the T-19 CI retrofit still holds; this ticket changes the
   script's *contents*, not the deploy configuration. If a planted negative assert does not fail,
   **fix the assert** — do not relax it to match current output.
+- **Execution deviations (T-27), all reviewer- and QA-sanctioned (QA verdict: Pass with Caveats,
+  `qa/qa-report-T-27.md`; code review: Approve on the second attempt):**
+  1. **The ticket's AC is stronger than design §10.1 on production `_headers`.** §10.1's snippet only
+     *not writes* the file; the AC additionally requires removing a stale `dist/_headers` from an
+     earlier build, so `gen-headers.mjs` calls `rmSync(headersPath, { force: true })` on the production
+     branch. Ticket followed — strictly stronger, and it satisfies §10.1's stated intent that shipping
+     an empty or superseded headers file is itself residue.
+  2. **The detection logic is genuinely untouched.** `PROD_BRANCH` / `branch` / `isProduction` are
+     byte-identical to T-18's, and the `CF_PAGES_URL is REJECTED as a discriminator` comment is
+     retained verbatim. The only import change is `+ rmSync`. Reviewer and QA both verified this
+     line-by-line against `47c16f5`. QA's **N-7** (a *directory* at `dist/_headers` would make
+     `rmSync` throw `EISDIR`) is unreachable via `npm run build` and is left as a documented nit.
+  3. **Design §11.1 rule 4's "No file under `dist/**`" is implemented as a binary skip-list, not an
+     extension whitelist.** A first draft whitelisted `html|css|xml|txt|json|webmanifest`; reviewer
+     proved that silently skipped `.js`, `.svg` and `.map` while still printing `PASS`. Inverted to
+     `BINARY_EXT` (fonts/images/media/archives) so a *new* output format is covered by default rather
+     than by remembering to whitelist it. `.svg` is deliberately **not** on the list — it is XML text
+     and can carry an `href`. A file that cannot be read is reported as `FAIL`, never skipped, so
+     "could not check" cannot read as "clean" (design §11.1 rule 5).
+  4. **One assert beyond the ticket's five: `dist/_headers` is compared byte-exactly** against the
+     preview noindex rule, on every branch. This is design §10.1-derived and exists to close a drift
+     hole — see deviation 5. QA's **N-3** records that this is deliberately strict: a future
+     `/_astro/*` immutable cache rule will fail the gate and require a coordinated edit to *both*
+     `gen-headers.mjs` and `verify-static.mjs`.
+  5. **The `PROD_BRANCH` literal is now duplicated in a second file, and the duplication has a known
+     hole.** `verify-static.mjs` re-implements the branch test for its absence assert because the
+     ticket forbids restructuring `gen-headers.mjs`'s expression (no shared `isProductionBuild()`
+     module was extracted — that is a follow-up, not this ticket). Reviewer and QA both flagged the
+     residual risk and **QA's N-1 reproduces it**: if the Cloudflare production branch is ever anything
+     but the literal `main`, `gen-headers` misclassifies production as preview and ships
+     `X-Robots-Tag: noindex` to the canonical host, while the branch-aware absence check silently skips
+     itself and the content check passes (the file it finds *is* the correct rule). The content check
+     catches the *wrong-content* drift case but not this byte-correct one. **Carried to T-19 as a
+     checklist item: confirm the Cloudflare Pages production branch is literally `main` before the
+     first deploy.** Two scripts now hardcode that string.
+  6. **`RES-X4`'s fact-group half is deliberately NOT asserted here, and is not orphaned.** Reviewer
+     asked rule 4 to also require `name`/`jobTitle` non-empty and `sameAs` non-empty; the Orchestrator
+     declined it for this ticket, because the ticket's five asserts and design §11.1:822/§11.3:845
+     specify only "exactly one JSON-LD block and it is `Person`", and the reviewer conceded it is a
+     PRD-vs-design gap rather than an implementation error. **T-28 already owns it** — its AC asserts
+     "`name`/`jobTitle`/`sameAs` present" under `RES-X4` (see T-28's AC list), and the hard `T-19 → T-28`
+     edge guarantees it lands before this script becomes a live deploy gate. Do not add it in a later
+     removal ticket; T-28 is the place.
+  7. **Forward-compat sharp edges recorded by QA, not fixed (all fail closed, none blocking):** QA's
+     **N-2** — "exactly one JSON-LD block" blocks a future `WebSite`/`BreadcrumbList` node beside
+     `Person` and reports a gain as a loss; `RES-X4` is a *presence* invariant, not an *exclusivity*
+     one, so relaxing it to "at least one block, exactly one of them `Person`" would keep every guard
+     that matters. **N-4** — an outbound URL whose path ends in `/resume` (e.g. a GitHub résumé repo)
+     is blocked, which is design-mandated and consistent with rule 2's outbound-anchor exemption being
+     the one thing it lets through. **N-6** — the accented route `/résumé/` is not caught, a fair
+     consequence of not punishing the word *résumé* in prose. **N-8** — the new `subset-fonts.mjs`
+     sweep/skip logs fire on the *remove*-without-relisting direction only; the *add*-without-relisting
+     direction the comment names is still silent by design, so the `swept N` line needs a human to diff
+     it against `ls dist/`. All four are one-line fixes at the moment they bite.
+  8. **`mkdirSync(resolve('dist'))` stays above the branch**, matching design §10.1:739 exactly.
+     Reviewer's N-5 would move it into the preview branch (production writes nothing, so creating the
+     directory is a pointless side effect); declined — the design snippet has the identical placement
+     and the only effect is materialising a gitignored empty `dist/` that nothing reads.
+  9. **T-20's aggregate `PASS` lines are now baseline-gated.** They previously printed
+     unconditionally, so a failing build still emitted two reassuring PASS lines. Each rule's PASS now
+     prints only if that rule added no failure. **No assert's behaviour changed** — QA verified rules 1
+     and 2 are byte-identical to `47c16f5` and rule 3's only diff is the two deleted résumé asserts.
+  10. **Scope note on the `resume` string in `scripts/`.** The ticket's check is `rg 'resume'
+      scripts/subset-fonts.mjs` → no match, and that holds. `verify-static.mjs` **does** contain the
+      literal, at exactly one line: `const RETIRED = 'resume'`. This is required — design §11.1:821
+      mandates the gate match the strings `/resume.pdf` and `"@type":"ProfilePage"`, which is
+      impossible without naming them. (A first draft obfuscated the constant as
+      `['res','ume'].join('')` to satisfy an over-broad check the Orchestrator had wrongly specified; it
+      was reverted pre-review. Do not re-apply that pattern — a CI gate whose target string is split to
+      hide it is unreadable to the next maintainer.) `gen-headers.mjs` and `subset-fonts.mjs` contain
+      **zero** occurrences, so `rg -in 'resume' scripts/` reports exactly that one line, repo-wide.
 
 #### T-28: Post-removal regression + accessibility/mobile re-verification
 

@@ -28,14 +28,29 @@ const REDUNDANCY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567
 const glyphs = new Set(REDUNDANCY);
 // Sweep every built HTML page so the subset always covers the live copy
 // (including characters shy of the redundancy whitelist, e.g. e-acute and ©).
-for (const file of ['index.html', 'resume/index.html', 'about/index.html', '404.html']) {
+// This list should name every page that exists: a missing input is silently
+// skipped rather than raising, so a page that is added without being listed
+// here would be quietly excluded from the subset and ship missing glyphs
+// (tofu) with no build failure to warn you. Nothing enforces the list, so the
+// sweep and skip logs below are the only signal that a page fell out of it.
+const swept = [];
+const skipped = [];
+for (const file of ['index.html', 'about/index.html', '404.html']) {
   let html = '';
   try {
     html = readFileSync(join(DIST_DIR, file), 'utf8');
   } catch {
+    skipped.push(file);
     continue;
   }
+  swept.push(file);
   for (const ch of html) glyphs.add(ch);
+}
+console.log(`[subset-fonts] swept ${swept.length} page(s): ${swept.join(', ')}`);
+if (skipped.length > 0) {
+  console.log(
+    `[subset-fonts] WARNING: ${skipped.length} listed input(s) not found in dist/: ${skipped.join(', ')} — their glyphs are NOT in the subset`,
+  );
 }
 const text = [...glyphs].join('');
 
