@@ -2,7 +2,7 @@
 slug: about
 title: About
 navLabel: About
-order: 3
+order: 2
 template: about
 description: "HUMAN COPY — one-line teaser of the About page (≤160 chars)."
 ---
