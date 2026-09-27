@@ -1,43 +1,30 @@
-# Astro Starter Kit: Minimal
+# personal-website
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Personal portfolio/about site built with [Astro](https://astro.build). Fully static output, deployed to Cloudflare Pages. Ships no client-side JavaScript; the only script tag is a JSON-LD data block.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Overview
 
-## 🚀 Project Structure
+- `src/pages/[...slug].astro` renders every section (Home, About) from the `sections` content collection (`src/content/sections/`). Section templates live in `src/templates/`.
+- `src/config/site.ts` is the single source of truth for the canonical host and trailing-slash policy (pages always end in `/`).
+- `src/pages/robots.txt.ts` and `@astrojs/sitemap` generate `robots.txt` and the sitemap at build time.
+- `scripts/` holds the Node build helpers described below. There is no `public/` directory; fonts are self-hosted from `src/assets/fonts/`.
 
-Inside of your Astro project, you'll see the following folders and files:
+Requires Node `>=22.12.0` (pinned in `.node-version`).
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## Scripts
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+| Command | What it does |
+| :-- | :-- |
+| `npm run dev` | Starts the Astro dev server at `localhost:4321`. |
+| `npm run build` | Runs `astro build` into `dist/`, then `scripts/gen-headers.mjs` to emit (or remove) the Cloudflare `dist/_headers` file. |
+| `npm run preview` | Serves the built `dist/` locally. |
+| `npm run check` | Type-checks `.astro` and `.ts` files with `astro check`. |
+| `npm run verify` | Static regression gate over `dist/` (`scripts/verify-static.mjs`). Fails on functional JavaScript, third-party asset origins, missing required outputs (`404.html`, `robots.txt`, sitemaps), or residue of retired routes. Run it after `npm run build`. |
+| `npm run fonts:subset` | Subsets the vendored IBM Plex Sans TTFs in `scripts/font-src/` to the glyphs used by the built pages and writes WOFF2 files to `src/assets/fonts/`. Not part of the build; run `npm run build` first and re-run whenever copy changes. |
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Environment Variables
 
-Any static assets, like images, can be placed in the `public/` directory.
+See `.env.example` for details.
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- **`PUBLIC_SITE_URL`** overrides the canonical host (default `https://mattoconn.pages.dev`). It drives every absolute URL: canonical links, sitemap, `robots.txt` sitemap line, JSON-LD, and the allowed origin in `npm run verify`. Set it only to build against a different domain.
+- **`CF_PAGES_BRANCH`** is set automatically by Cloudflare Pages. `gen-headers.mjs` treats unset or `main` as production and writes no `_headers`; any other branch gets a site-wide `X-Robots-Tag: noindex` so preview deploys stay out of search results. Simulate a preview locally with `CF_PAGES_BRANCH=preview-x npm run build`, then rebuild without it before running `npm run verify`.

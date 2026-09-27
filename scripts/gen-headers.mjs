@@ -26,9 +26,12 @@ const noindexRule = [
   '  X-Robots-Tag: noindex',
 ].join('\n');
 
-const headersPath = resolve('dist/_headers');
+// Anchored to this script's location, not the working directory, so output
+// always lands in the project-root dist/ however the script is invoked.
+const DIST_DIR = resolve(import.meta.dirname, '../dist');
+const headersPath = resolve(DIST_DIR, '_headers');
 
-mkdirSync(resolve('dist'), { recursive: true });
+mkdirSync(DIST_DIR, { recursive: true });
 if (isProduction) {
   rmSync(headersPath, { force: true });
   console.log('[gen-headers] production build — no _headers written');
