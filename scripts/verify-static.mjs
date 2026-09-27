@@ -2,14 +2,21 @@
 // violation. Plain Node ESM, zero runtime deps.
 //
 // Rules:
+//   0. One canonical origin. SITE_ORIGIN is derived from the build output, not
+//      from an env read that could disagree with it: the robots.txt Sitemap:
+//      line sets it, and every sitemap <loc> plus the home page canonical must
+//      share it exactly (scheme included), so a mixed-host build fails here.
 //   1. Functional-JS markers. Any <script> with src=, or a non-empty inline
-//      body that isn't type="application/ld+json" (data block), plus any
-//      event-handler attribute (onclick=, onload=, ...) anywhere in the page.
+//      body that isn't type="application/ld+json" (data block), any
+//      event-handler attribute (onclick=, onload=, ...) on any tag, and any
+//      .js/.mjs/.cjs file emitted into dist/.
 //   2. Third-party origin. In load-bearing HTML attrs (src/srcset/href/poster/
-//      action) and CSS url() references, any absolute-URL/protocol-relative host
-//      that isn't SITE_ORIGIN fails. <a href> anchors are exempt (outbound
-//      links are a feature); JSON-LD lives in exempted data blocks and is never
-//      fetched.
+//      action, quoted or not), CSS url() references (in <style> blocks, style=""
+//      attributes and .css files) and CSS @import strings, any absolute or
+//      protocol-relative URL whose origin isn't SITE_ORIGIN fails; comparing the
+//      full origin also catches http:// mixed content. <a href> anchors are
+//      exempt (outbound links are a feature); JSON-LD lives in exempted data
+//      blocks and is never fetched.
 //   3. Presence asserts: 404.html, robots.txt and both sitemap files exist.
 //   4. No-residue asserts: the retired route must stay retired — not as a file,
 //      not as a link, not as a JSON-LD node type, and not as dead _headers
@@ -24,17 +31,15 @@
 //      the removal did not collaterally take the site's only structured data
 //      (the Person node) with it.
 //
-// Ordering: `npm run verify` assumes dist/ came from a build in the *current*
-// environment. A CF_PAGES_BRANCH-prefixed (preview) build leaves dist/_headers
-// on disk, so re-run a plain `npm run build` before verifying if you built with
-// that variable set. In CI the `npm run build && npm run verify` chain sees one
-// environment for both, so this only bites local runs.
+// Ordering: `npm run build` chains this script as its last step, so a build
+// always verifies in the environment it was built in. A standalone
+// `npm run verify` assumes the same: a CF_PAGES_BRANCH-prefixed (preview) build
+// leaves dist/_headers on disk, so re-run a plain `npm run build` before
+// verifying if you built with that variable set.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const DIR = resolve('dist');
-const ALLOWED_ORIGIN = process.env.PUBLIC_SITE_URL ?? 'https://mattoconn.pages.dev';
-const ALLOWED_HOST = new URL(ALLOWED_ORIGIN).hostname;
 
 const failures = [];
 const pass = (msg) => console.log(`PASS ${msg}`);
@@ -58,12 +63,107 @@ const files = walk(DIR);
 const htmlFiles = files.filter((f) => f.endsWith('.html'));
 const cssFiles = files.filter((f) => f.endsWith('.css'));
 
+// Shared tag/attribute helpers. OPEN_TAG matches an opening tag while skipping
+// over quoted attribute values, so a ">" inside a value does not end the tag.
+const OPEN_TAG = /<([a-zA-Z][a-zA-Z0-9-]*)((?:"[^"]*"|'[^']*'|[^'"<>])*?)>/g;
+// One attribute: a name, optionally "=" and a value in any of its three
+// spellings ("double", 'single', bare). Tokenizing whole attributes means text
+// inside one value (alt="src=https://x") is never read as another attribute.
+const ATTR = /([^\s"'=<>/`]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+const decodeEntities = (s) =>
+  s
+    .replace(/&quot;|&#0*34;|&#x0*22;/gi, '"')
+    .replace(/&apos;|&#0*39;|&#x0*27;/gi, "'")
+    .replace(/&amp;/gi, '&');
+// Every opening tag as { tag, attrs }, with attrs as [lowercased name, decoded value] pairs.
+const openTags = (html) =>
+  [...html.matchAll(OPEN_TAG)].map((t) => ({
+    tag: t[1].toLowerCase(),
+    attrs: [...t[2].matchAll(ATTR)].map((a) => [
+      a[1].toLowerCase(),
+      decodeEntities(a[2] ?? a[3] ?? a[4] ?? ''),
+    ]),
+  }));
+
+// ---- Rule 0: one canonical origin -------------------------------------------
+//
+// SITE_ORIGIN comes from what the build actually emitted, never from an env
+// read: astro.config.mjs and app code could each resolve PUBLIC_SITE_URL
+// differently, and an env read here would agree with only one of them.
+
+const ORIGIN_RULE_BASELINE = failures.length; // so only rule 0 drives its own PASS line
+const readDist = (rel) => {
+  try {
+    return readFileSync(join(DIR, rel), 'utf8');
+  } catch {
+    return null;
+  }
+};
+const originOf = (u) => {
+  try {
+    return new URL(u).origin;
+  } catch {
+    return null;
+  }
+};
+
+const sitemapLine = readDist('robots.txt')?.match(/^Sitemap:\s*(\S+)\s*$/im)?.[1];
+const SITE_ORIGIN = sitemapLine ? originOf(sitemapLine) : null;
+if (!SITE_ORIGIN) {
+  console.log(
+    'FAIL dist/robots.txt: no parseable Sitemap: line — cannot establish the canonical origin',
+  );
+  console.log('\nverify: 1 violation(s) — gate BLOCKED');
+  process.exit(1);
+}
+if (!SITE_ORIGIN.startsWith('https://')) {
+  fail(`dist/robots.txt: canonical origin ${SITE_ORIGIN} is not https`);
+}
+if (new URL(sitemapLine).pathname !== '/sitemap-index.xml') {
+  fail(`dist/robots.txt: Sitemap: ${sitemapLine} does not target /sitemap-index.xml`);
+}
+
+const sameOrigin = (file, what, url) => {
+  const origin = originOf(url);
+  if (origin !== SITE_ORIGIN) {
+    fail(`${file}: ${what} ${url} is not on the canonical origin ${SITE_ORIGIN}`);
+  }
+};
+
+const LOC = /<loc>\s*([^<\s]+)\s*<\/loc>/g;
+const sitemapFiles = files.filter((f) => /[\\/]sitemap-[^\\/]*\.xml$/.test(f));
+let locCount = 0;
+for (const file of sitemapFiles) {
+  for (const [, url] of readFileSync(file, 'utf8').matchAll(LOC)) {
+    locCount++;
+    sameOrigin(file, 'sitemap <loc>', url);
+  }
+}
+if (locCount === 0) fail('dist/sitemap-*.xml: no <loc> entries to cross-check against robots.txt');
+
+for (const file of htmlFiles) {
+  for (const { tag, attrs } of openTags(readFileSync(file, 'utf8'))) {
+    if (tag !== 'link') continue;
+    const get = (name) => attrs.find(([n]) => n === name)?.[1] ?? '';
+    if (!/(?:^|\s)canonical(?:\s|$)/i.test(get('rel'))) continue;
+    sameOrigin(file, 'canonical', get('href'));
+  }
+}
+
+if (failures.length === ORIGIN_RULE_BASELINE) {
+  pass(`canonical origin: robots.txt, ${locCount} sitemap URL(s) and canonicals agree on ${SITE_ORIGIN}`);
+}
+
 // ---- Rule 1: functional-JS markers -----------------------------------------
 
 const SCRIPT = /<\s*script\b([^>]*)>([\s\S]*?)<\/\s*script\s*>/gi;
 const HAS_SRC = /\bsrc\s*=/i;
 const TYPE_ATTR = /\btype\s*=\s*["']?([^"'\s>]+)/i;
-const EVENT_HANDLER = /\s(on[a-z]+)\s*=\s*("|')[^"']*("|')/i;
+const EVENT_HANDLER = /^on[a-z]+$/;
+
+for (const file of files.filter((f) => /\.[mc]?js$/i.test(f))) {
+  fail(`${file}: JavaScript file emitted into dist/`);
+}
 
 for (const file of htmlFiles) {
   const html = readFileSync(file, 'utf8');
@@ -83,75 +183,74 @@ for (const file of htmlFiles) {
     }
   }
 
-  if (EVENT_HANDLER.test(html)) {
-    const hit = EVENT_HANDLER.exec(html);
-    fail(`${file}: event-handler attribute ${hit?.[1] ?? ''}`);
+  for (const { tag, attrs } of openTags(html)) {
+    for (const [name] of attrs) {
+      if (EVENT_HANDLER.test(name)) fail(`${file}: <${tag}> event-handler attribute ${name}`);
+    }
   }
 }
 
 // ---- Rule 2: third-party origins -------------------------------------------
 
 const ORIGIN_FAILURE_BASELINE = failures.length; // so only rule 2 drives its own PASS line
-const ATTR_URL = new RegExp(
-  `\\b(src|srcset|href|poster|action)\\s*=\\s*(["'])(.*?)\\2`,
-  'gi',
-);
+const URL_ATTRS = new Set(['src', 'srcset', 'href', 'poster', 'action']);
 const CSS_URL = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
-const wouldLoad = (host) => host && host.toLowerCase() !== ALLOWED_HOST.toLowerCase();
+const CSS_IMPORT = /@import\s+(['"])(.*?)\1/gi; // @import url(...) is caught by CSS_URL
+
+// The origin a reference would load from, when that is not SITE_ORIGIN.
+// Relative and non-network references (data:, mailto:, #frag) return null.
+// Protocol-relative URLs resolve against SITE_ORIGIN's scheme, as a browser
+// would on the canonical page.
+function foreignOrigin(candidate) {
+  const s = candidate.trim().split(/\s+/)[0] ?? '';
+  if (!/^(?:https?:)?\/\//i.test(s)) return null;
+  try {
+    const origin = new URL(s, SITE_ORIGIN).origin;
+    return origin === SITE_ORIGIN ? null : origin;
+  } catch {
+    return `unparseable URL ${JSON.stringify(s)}`;
+  }
+}
+
+function scanCss(file, css, where) {
+  for (const re of [CSS_URL, CSS_IMPORT]) {
+    for (const u of css.matchAll(re)) {
+      const origin = foreignOrigin(u[2]);
+      if (origin) fail(`${file}: ${where} ${re === CSS_URL ? 'url()' : '@import'} → ${origin}`);
+    }
+  }
+}
 
 for (const file of htmlFiles) {
   const html = readFileSync(file, 'utf8');
 
-  let tag;
-  const OPEN_TAG = /<([a-zA-Z][a-zA-Z0-9]*)((?:"[^"]*"|'[^']*'|[^'"<>])*?)>/g;
-  OPEN_TAG.lastIndex = 0;
-  while ((tag = OPEN_TAG.exec(html))) {
-    const tagName = tag[1].toLowerCase();
-    const attrs = tag[2];
-    let a;
-    ATTR_URL.lastIndex = 0;
-    while ((a = ATTR_URL.exec(attrs))) {
-      const [attr, , , value] = [a[0], a[1], a[2], a[3]];
-      void attr;
-      const attrName = a[1];
-      if (tagName === 'a' && attrName === 'href') continue; // outbound links are a feature
-      for (const candidate of value.split(',').map((s) => s.trim())) {
-        const host = extractHost(candidate);
-        if (wouldLoad(host)) fail(`${file}: <${tagName} ${attrName}> → ${host}`);
+  for (const { tag, attrs } of openTags(html)) {
+    for (const [name, value] of attrs) {
+      if (name === 'style') {
+        scanCss(file, value, `<${tag} style>`);
+        continue;
+      }
+      if (!URL_ATTRS.has(name)) continue;
+      if (tag === 'a' && name === 'href') continue; // outbound links are a feature
+      for (const candidate of name === 'srcset' ? value.split(',') : [value]) {
+        const origin = foreignOrigin(candidate);
+        if (origin) fail(`${file}: <${tag} ${name}> → ${origin}`);
       }
     }
   }
 
-  // CSS url() references inside inlined <style> blocks.
+  // CSS references inside inlined <style> blocks.
   for (const block of html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) ?? []) {
-    let u;
-    CSS_URL.lastIndex = 0;
-    while ((u = CSS_URL.exec(block))) {
-      const host = extractHost(u[2]);
-      if (wouldLoad(host)) fail(`${file}: css url() → ${host}`);
-    }
+    scanCss(file, block, 'css');
   }
 }
 
 for (const file of cssFiles) {
-  const css = readFileSync(file, 'utf8');
-  let u;
-  CSS_URL.lastIndex = 0;
-  while ((u = CSS_URL.exec(css))) {
-    const host = extractHost(u[2]);
-    if (wouldLoad(host)) fail(`${file}: css url() → ${host}`);
-  }
+  scanCss(file, readFileSync(file, 'utf8'), 'css');
 }
 
 if (failures.length === ORIGIN_FAILURE_BASELINE) {
   pass('third-party scan: all load-bearing refs same-origin');
-}
-
-function extractHost(candidate) {
-  const s = candidate.trim();
-  if (/^https?:\/\//i.test(s)) return new URL(s).hostname;
-  if (s.startsWith('//')) return s.slice(2, s.indexOf('/', 2) === -1 ? undefined : s.indexOf('/', 2));
-  return null;
 }
 
 // ---- Rule 3: presence asserts -----------------------------------------------
@@ -341,4 +440,4 @@ if (failures.length > 0) {
   console.log(`\nverify: ${failures.length} violation(s) — gate BLOCKED`);
   process.exit(1);
 }
-console.log(`\nverify: OK — ${htmlFiles.length} HTML, ${cssFiles.length} CSS files checked (${ALLOWED_HOST})`);
+console.log(`\nverify: OK — ${htmlFiles.length} HTML, ${cssFiles.length} CSS files checked (${SITE_ORIGIN})`);
