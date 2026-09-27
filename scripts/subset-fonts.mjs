@@ -9,8 +9,10 @@
 // the latter shells out to Python's fonttools+brotli, which isn't installed on
 // this machine. Output is identical in spirit (same charset, woff2 target) and
 // either tool is acceptable. TTF sources stay committed under
-// scripts/font-src/ so subsetting is hermetic/repeatable.
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+// scripts/font-src/ so subsetting is hermetic/repeatable. They are licensed
+// under the SIL Open Font License 1.1 (scripts/font-src/OFL.txt), which also
+// covers the subsetted WOFF2 derivatives.
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import subsetFont from 'subset-font';
 
@@ -23,41 +25,76 @@ const pinnedOutputs = {
   'IBMPlexSans-SemiBold.ttf': 'ibm-plex-sans-600.woff2',
 };
 
-const REDUNDANCY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 —–''’“\"";
+// Every build emits the home page; its absence means dist/ is not a complete build.
+const SENTINEL_PAGE = 'index.html';
 
-const glyphs = new Set(REDUNDANCY);
-// Sweep every built HTML page so the subset always covers the live copy
-// (including characters shy of the redundancy whitelist, e.g. e-acute and ©).
-// This list should name every page that exists: a missing input is silently
-// skipped rather than raising, so a page that is added without being listed
-// here would be quietly excluded from the subset and ship missing glyphs
-// (tofu) with no build failure to warn you. Nothing enforces the list, so the
-// sweep and skip logs below are the only signal that a page fell out of it.
-const swept = [];
-const skipped = [];
-for (const file of ['index.html', 'about/index.html', '404.html']) {
-  let html = '';
-  try {
-    html = readFileSync(join(DIST_DIR, file), 'utf8');
-  } catch {
-    skipped.push(file);
-    continue;
-  }
-  swept.push(file);
-  for (const ch of html) glyphs.add(ch);
+function fail(message) {
+  console.error(`[subset-fonts] ERROR: ${message}`);
+  console.error('[subset-fonts] No fonts were written. Run `npm run build` first.');
+  process.exit(1);
 }
-console.log(`[subset-fonts] swept ${swept.length} page(s): ${swept.join(', ')}`);
-if (skipped.length > 0) {
-  console.log(
-    `[subset-fonts] WARNING: ${skipped.length} listed input(s) not found in dist/: ${skipped.join(', ')} — their glyphs are NOT in the subset`,
-  );
-}
-const text = [...glyphs].join('');
 
+// Characters always kept regardless of current copy, so small copy edits don't
+// render tofu before the subset is regenerated. Built from code points rather
+// than literals so look-alike quotes can't be mistyped.
+const REDUNDANCY = [
+  // Printable ASCII: space (U+0020) through tilde (U+007E).
+  ...Array.from({ length: 0x7e - 0x20 + 1 }, (_, i) => String.fromCharCode(0x20 + i)),
+  ' ', // no-break space
+  '©', // © copyright sign
+  '–', // – en dash
+  '—', // — em dash
+  '‘', // ‘ left single quotation mark
+  '’', // ’ right single quotation mark
+  '“', // “ left double quotation mark
+  '”', // ” right double quotation mark
+  '…', // … horizontal ellipsis
+].join('');
+
+const NAMED_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+
+// Decode entities so the subset gets the glyph they represent, not `&`, `#`, `;`.
+function decodeEntities(text) {
+  return text.replace(/&(?:#(\d+)|#[xX]([0-9a-fA-F]+)|([a-zA-Z]+));/g, (match, dec, hex, name) => {
+    if (name !== undefined) return NAMED_ENTITIES[name] ?? match;
+    const codePoint = dec !== undefined ? Number.parseInt(dec, 10) : Number.parseInt(hex, 16);
+    return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : match;
+  });
+}
+
+if (!existsSync(DIST_DIR) || !statSync(DIST_DIR).isDirectory()) {
+  fail(`build output not found at ${DIST_DIR}.`);
+}
+if (!existsSync(join(DIST_DIR, SENTINEL_PAGE))) {
+  fail(`${SENTINEL_PAGE} missing from ${DIST_DIR}; the build is incomplete.`);
+}
+
+// Sweep every built HTML page (and emitted CSS, for `content:` strings) so the
+// subset covers all live copy without a hand-maintained page list.
+const inputs = readdirSync(DIST_DIR, { recursive: true })
+  .filter((file) => /\.(html|css)$/.test(file))
+  .sort();
+const pages = inputs.filter((file) => file.endsWith('.html'));
+
+const chars = new Set(REDUNDANCY);
+for (const file of inputs) {
+  for (const ch of decodeEntities(readFileSync(join(DIST_DIR, file), 'utf8'))) chars.add(ch);
+}
+console.log(`[subset-fonts] swept ${pages.length} page(s): ${pages.join(', ')}`);
+const stylesheets = inputs.length - pages.length;
+if (stylesheets > 0) console.log(`[subset-fonts] swept ${stylesheets} stylesheet(s)`);
+
+const text = [...chars].join('');
+
+// Subset every weight before writing any, so a failure can't leave a mismatched pair.
+const outputs = [];
 for (const [ttf, out] of Object.entries(pinnedOutputs)) {
   const input = readFileSync(join(SRC_DIR, ttf));
-  const woff2 = await subsetFont(input, text, { targetFormat: 'woff2' });
-  mkdirSync(OUT_DIR, { recursive: true });
+  outputs.push([out, await subsetFont(input, text, { targetFormat: 'woff2' })]);
+}
+
+mkdirSync(OUT_DIR, { recursive: true });
+for (const [out, woff2] of outputs) {
   writeFileSync(join(OUT_DIR, out), woff2);
-  console.log(`wrote ${out} (${text.length} unique glyphs, ${woff2.length} bytes)`);
+  console.log(`wrote ${out} (${chars.size} unique characters, ${woff2.length} bytes)`);
 }
