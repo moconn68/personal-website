@@ -4,18 +4,21 @@
 // into the route). Crawlers parse JSON-LD anywhere in the document. This
 // <script> is a DATA block, not client-side JavaScript — the static-output gate
 // must exempt type="application/ld+json". is:inline guarantees Astro leaves the
-// block untouched; set:html emits raw JSON.
+// block untouched; set:html emits raw JSON, so every '<' is escaped to <
+// to keep a '</script>' in any string value from closing the block early.
 import { getPersonData } from '../config/person';
+import { absoluteUrl } from '../config/site';
 
 const p = await getPersonData();
 const ld = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: p.name,
-  url: p.url,
+  url: absoluteUrl('/'),
   jobTitle: p.jobTitle,
   sameAs: p.sameAs.filter(Boolean),
 };
+const json = JSON.stringify(ld).replace(/</g, '\\u003c');
 ---
 
-<script type="application/ld+json" is:inline set:html={JSON.stringify(ld)} />
+<script type="application/ld+json" is:inline set:html={json} />
