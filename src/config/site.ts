@@ -1,12 +1,12 @@
 // Single source of truth for all absolute URLs (canonical, sitemap, robots,
-// JSON-LD, _headers). astro.config.mjs mirrors the default via process.env;
-// this module reads the Astro-injected import.meta.env at build time.
-const DEFAULT_SITE_URL = 'https://mattoconn.pages.dev';
+// JSON-LD, _headers) is astro.config.mjs's `site`, which resolves the
+// PUBLIC_SITE_URL override and default and strips any trailing slash. Astro
+// injects that resolved value here as import.meta.env.SITE, so this module
+// never re-reads the env var and cannot disagree with the sitemap host.
+const site: string | undefined = import.meta.env.SITE;
+if (!site) throw new Error('astro.config.mjs must set `site` — absolute URLs derive from it.');
 
-export const SITE_URL: string =
-  (import.meta.env.PUBLIC_SITE_URL as string | undefined)?.replace(/\/+$/, '') ?? DEFAULT_SITE_URL;
-
-export const SITE_ORIGIN: string = new URL(SITE_URL).origin;
+export const SITE_URL: string = site;
 
 /** Single trailing-slash policy: pages ALWAYS end in '/' (root is '/'); file paths never do. */
 export function path(p: string): string {
