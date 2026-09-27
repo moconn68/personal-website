@@ -103,13 +103,14 @@ h6 {
 /* --- accessibility baseline --- */
 
 /* Visible focus ring for keyboard and pointer input on every interactive
-   element. Never outline: none. */
+   element. Never outline: none. tabindex="-1" targets are programmatic-focus
+   only, so they are excluded. */
 a:focus,
 a:focus-visible,
 button:focus,
 button:focus-visible,
-[tabindex]:focus,
-[tabindex]:focus-visible {
+[tabindex]:not([tabindex='-1']):focus,
+[tabindex]:not([tabindex='-1']):focus-visible {
   outline: 2px solid var(--color-accent, #1e40af);
   outline-offset: 2px;
 }

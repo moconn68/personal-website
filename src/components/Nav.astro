@@ -21,11 +21,7 @@ const pathname = Astro.url.pathname;
         const isActive = pathname === href;
         return (
           <li>
-            <a
-              href={href}
-              class:list={{ active: isActive }}
-              aria-current={isActive ? 'page' : undefined}
-            >
+            <a href={href} aria-current={isActive ? 'page' : undefined}>
               {entry.data.navLabel}
             </a>
           </li>
@@ -76,21 +72,27 @@ const pathname = Astro.url.pathname;
     outline-offset: 2px;
   }
 
-  /* Active state: accent color + underline together, never color alone. */
-  a.active {
+  /* Active state: accent color + underline together, never color alone.
+     Keyed off aria-current so the visual and accessible states cannot drift. */
+  a[aria-current='page'] {
     color: var(--color-accent, #1e40af);
     text-decoration: none;
     border-bottom: 2px solid var(--color-accent, #1e40af);
   }
 
   /* desktop: inline horizontal row spanning full width — brand (home) on the
-     left, remaining items on the right. Registry order puts
-     home first; space-between pushes the rest to the right edge. */
+     left, remaining items grouped on the right. Registry order puts home
+     first; its auto end margin absorbs the free space, so any number of
+     trailing items stay grouped together at the right edge. */
   @media (min-width: 768px) {
     ul {
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: var(--space-4, 1rem);
+    }
+
+    li:first-child {
+      margin-inline-end: auto;
     }
   }
 </style>
