@@ -12,7 +12,8 @@
 // glob picks up new template components automatically.
 // Every template receives entry + the full ordered registry (the template
 // contract). No `path` prop to BaseLayout — Nav reads Astro.url.pathname itself.
-import { getSections, sectionPath, type SectionEntry } from '../config/sections';
+import type { InferGetStaticPropsType } from 'astro';
+import { getSections, sectionPath } from '../config/sections';
 import { templateToComponentName } from '../config/templates';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Seo from '../components/Seo.astro';
@@ -25,7 +26,9 @@ export async function getStaticPaths() {
   }));
 }
 
-const { entry } = Astro.props as { entry: SectionEntry };
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { entry } = Astro.props;
 const sections = await getSections();
 const home = sections.find((section) => section.data.slug === 'home');
 if (!home) throw new Error('Registry must contain a "home" section.');
@@ -39,6 +42,9 @@ const currentPath = sectionPath(entry);
 // The `{ default: any }` cast is required — Astro's component
 // factory type is not exposed via a public exports path. A registered section
 // whose component is missing throws here → the build fails loudly.
+// Note: every template's scoped CSS ships on every route. A lazy glob does
+// NOT fix this — Astro's build CSS graph treats dynamic importers like static
+// ones (verified on astro 7.3.3), so lazy imports produce identical output.
 const templates = import.meta.glob('../templates/*.astro', { eager: true }) as Record<
   string,
   { default: any }

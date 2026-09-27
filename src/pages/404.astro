@@ -6,8 +6,7 @@
 // `<meta name="robots" content="noindex">` (excluded from the sitemap via the
 // sitemap filter). Title/description here are self-contained. Zero client JS.
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { sectionPath } from '../config/sections';
-import { getSections } from '../config/sections';
+import { getSections, sectionPath } from '../config/sections';
 
 const sections = await getSections();
 const home = sections.find((entry) => entry.data.slug === 'home');

@@ -24,12 +24,13 @@ const year = new Date().getFullYear();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Per-route <title>/meta/canonical land here via the head slot (Seo). -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* Per-route <title>/meta/canonical land here via the head slot (Seo). */}
     <slot name="head" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
-    <!-- Landmarks: <header> chrome, <nav> emitted by Nav.astro, <main id="main"> slot, <footer> -->
+    {/* Landmarks: <header> chrome, <nav> emitted by Nav.astro, <main id="main"> slot, <footer> */}
     <header>
       <Nav />
     </header>
