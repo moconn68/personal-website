@@ -3,15 +3,35 @@
 > **Upstream source:** [vision.md](../vision/vision.md)  
 > **Project:** `initial-site` — the site-initialization project. Everything in §7 is excluded from
 > this PRD and becomes a separate project directory under `projects/`; see §11.1.  
-> **PRD version:** 1.4  
-> **Date:** 2026-09-21  
+> **PRD version:** 1.5  
+> **Date:** 2026-09-26  
 > **Author:** Product Manager (AI SDLC)
+
+> ### ⚠ Scope change in v1.5 — the résumé surface is removed
+>
+> **Owner decision, 2026-09-26:** the résumé is no longer published on this site. The v1 scope
+> drops from **four surfaces to three** (Home, About, Section Registry) and every résumé-derived
+> requirement is removed. This is a **reduction of scope**, not a deferral: the work is cancelled,
+> not scheduled.
+>
+> - **Removed requirement IDs (tombstoned in place, never renumbered):** `RES-1`..`RES-5` (§5.2),
+>   `SEO-2` (§5.5), `DEP-7` (§5.6), `US-5`, `US-6`, `US-7` (§10).
+> - **Removed decisions:** `OQ-1` and `OQ-4` are superseded by `OQ-7` (§11).
+> - **Why IDs are tombstoned, not renumbered:** every ticket, design section, and cross-reference
+>   in `tickets/`, `designs/`, and `plans/` cites these IDs. Renumbering would silently repoint
+>   them at different requirements.
+> - **Consequence for depth signal:** the hiring-manager persona is served by *routing*, not by
+>   re-publishing a résumé — About page (authored judgment) + LinkedIn (maintained work history)
+>   + GitHub (output). See §3 and §8.
+> - **The site as built already contained a résumé** (tickets T-9, T-14, T-18's `/resume.pdf`
+>   rule, T-24). Those tickets are **retired** and new removal tickets `T-25`..`T-28` delete the
+>   shipped code **before** the first production deploy (`T-19`).
 
 ---
 
 ## 1. Executive Summary
 
-This PRD defines v1 of a personal website for a professional software engineer: a static, zero-JavaScript, mobile-perfect site with four surfaces (Home scan page, Résumé landing page + statically-hosted PDF, About page, and a Section Registry for future extensibility). The résumé surface is a minimal landing page linking to a PDF the owner provides and commits to the repo — no résumé content is rendered in site HTML. It is not a portfolio — it is an identity hub that prioritizes speed, parseability, and architectural cleanliness so that evidence (projects, writing) slots in as content later. The site deploys to a free-tier subdomain on Cloudflare Pages or Vercel, uses Astro + TypeScript, self-hosted fonts, and structured data (JSON-LD) for search engine and AI assistant discoverability.
+This PRD defines v1 of a personal website for a professional software engineer: a static, zero-JavaScript, mobile-perfect site with three surfaces (Home scan page, About page, and a Section Registry for future extensibility). There is **no résumé surface** — the site publishes no résumé page and hosts no résumé PDF; the hero routes to LinkedIn for the maintained work history and to GitHub for output, while the About page carries the authored judgment signal. It is not a portfolio — it is an identity hub that prioritizes speed, parseability, and architectural cleanliness so that evidence (projects, writing) slots in as content later. The site deploys to a free-tier subdomain on Cloudflare Pages or Vercel, uses Astro + TypeScript, self-hosted fonts, and structured data (JSON-LD) for search engine and AI assistant discoverability.
 
 ---
 
@@ -34,7 +54,7 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 | Persona | Role | What they need in <30s | Success signal |
 |---|---|---|---|
 | **Scanning Recruiter** | Screens 30+ portfolios/afternoon, ~6s each | Name, role, domain, primary stack — above the fold, in real selectable text | Instantly parses identity; finds GitHub/LinkedIn without hunting; page stays open because it loads fast and is mobile-clean |
-| **Hiring Manager / Senior Engineer** | Checks depth on promising candidates | Résumé with impact-focused bullets + downloadable ATS-friendly PDF | Sees outcomes and technical judgment; tone signals quality before first interview |
+| **Hiring Manager / Senior Engineer** | Checks depth on promising candidates | A judgment signal in one click and a maintained work history in the next | Reads the About page and comes away with a view on how the owner thinks; the LinkedIn link is one click away and carries the dated role-and-impact history; GitHub carries the output. **No résumé is published on the site** — depth is routed, not re-hosted (v1.5) |
 | **Curious Peer / New Acquaintance** | Wants "personal" context after meeting the owner | About page with genuine hobby threads and a bit of story | Remembers the human; doesn't feel like reading a third-person CV |
 
 ---
@@ -44,9 +64,9 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 > These are verbatim constraints from the vision document. They are non-negotiable for v1.
 
 ### 4.1 Scope Cap (v1 Surfaces)
-- **Four surfaces only:** Home/scan page, Résumé landing page + statically-hosted PDF, About page, and the Section Registry.
+- **Three surfaces only:** Home/scan page, About page, and the Section Registry.
 - **No Projects, Blog, Now, or Uses sections in v1** — despite the registry being built to support them.
-- **Résumé decision (OQ-1 resolved):** The résumé surface is a direct PDF file (`public/resume.pdf` → `/resume.pdf`), not a web-rendered résumé. The web page is a minimal landing surface with a download link. No résumé content is authored or rendered in site HTML. This is a deliberate deviation from the vision's "rendered web page from one source" framing, authorized by the project planner.
+- **No résumé surface (v1.5, supersedes the v1.0–1.4 "four surfaces" cap):** the site publishes no résumé page and hosts no résumé PDF. No `resume` content file, no résumé template, no `/resume.pdf`, no PDF cache rules, no ProfilePage structured data. The Home hero links to LinkedIn and GitHub as the routed depth surfaces. Any future résumé is a **separate project** (see §9, §11 OQ-7).
 
 ### 4.2 Zero Client-Side JavaScript
 - Astro "zero-JS by default" — static HTML output. No client-side framework runtime.
@@ -69,7 +89,7 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 ### 4.7 Typed Content Model + Structured Data
 - Astro content collections / TypeScript.
 - Self-hosted subset fonts (no third-party font CDN).
-- Structured data: Person/ProfilePage JSON-LD + sitemap.
+- Structured data: Person JSON-LD + sitemap. (ProfilePage JSON-LD removed in v1.5 with the résumé page — see SEO-2.)
 
 ---
 
@@ -81,23 +101,35 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 |---|---|---|---|
 | HOME-1 | Hero section with name, role-in-domain, and primary stack — above the fold | MUST | Left-aligned, real selectable text (no image/CSS text) |
 | HOME-2 | Condensed proof line (years of experience, kind of work) | MUST | Below hero, concise |
-| HOME-3 | Links to GitHub, LinkedIn, Résumé page, and About page | MUST | Prominent, no hunting |
+| HOME-3 | Links to GitHub, LinkedIn, and the About page | MUST | Prominent, no hunting. No résumé link (v1.5) |
 | HOME-4 | Zero animations that delay content rendering | MUST | Content-first, no stock photos |
 | HOME-5 | Pixel-perfect layout on phones (375px–430px viewport) | MUST | Primary target: mobile |
-| HOME-6 | Structured data: Person + ProfilePage JSON-LD | MUST | Enables AI assistants and search engines to parse identity |
+| HOME-6 | Structured data: Person JSON-LD | MUST | Enables AI assistants and search engines to parse identity. (ProfilePage removed v1.5 — see SEO-2) |
 | HOME-7 | Sitemap includes Home page | MUST | Standard sitemap.xml |
 
-### 5.2 Résumé Page + PDF
+### 5.2 Résumé Page + PDF — **REMOVED in v1.5**
 
-> **Design note:** Per OQ-1 resolution, the résumé is a statically-committed PDF — not a build-generated artifact. The web page is a landing surface; no résumé content is authored in the site's content model.
+> **Tombstone.** The entire section is cancelled by owner decision (2026-09-26). The requirements
+> below no longer exist; the IDs are permanently retired and **must not be renumbered or reused**.
+> Implemented work that these requirements produced is deleted by tickets `T-25`..`T-28`.
+
+| ID | Requirement | Status |
+|---|---|---|
+| RES-1 | Résumé landing page with a download button | **REMOVED (v1.5)** |
+| RES-2 | PDF served from `/resume.pdf` | **REMOVED (v1.5)** |
+| RES-3 | PDF text-extractable / ATS-friendly | **REMOVED (v1.5)** |
+| RES-4 | Landing page mobile-responsive download action | **REMOVED (v1.5)** |
+| RES-5 | PDF cache headers for prompt updates | **REMOVED (v1.5)** |
+
+**Inherited obligations that survive the removal** (these are the real risk of a removal — they
+are not in any removed ID, so they are restated here as MUST and tracked by the removal tickets):
 
 | ID | Requirement | Priority | Notes |
 |---|---|---|---|
-| RES-1 | Résumé landing page: title, brief context, and a prominent "Download résumé (PDF)" button linking to `/resume.pdf` | MUST | Minimal page — no rendered résumé content in HTML |
-| RES-2 | PDF served from stable, linkable path `/resume.pdf` (committed in `public/` directory) | MUST | Deploys with site on git push |
-| RES-3 | PDF is text-extractable (ATS-friendly) — owner's responsibility to supply a non-image-scan PDF | MUST | Verified once at content-add time, not a build-time guarantee |
-| RES-4 | Landing page is mobile-responsive with one obvious download action | MUST | Touch target ≥ 44px; no hunting for the download link |
-| RES-5 | PDF served with cache headers that allow prompt updates after push | SHOULD | Cloudflare Pages/Vercel default caching is acceptable |
+| RES-X1 | **No résumé artifacts survive in the build** — no `resume` content file, no résumé template component, no ProfilePage JSON-LD component, no `resume` template enum value, no `/resume.pdf` file or link. | MUST | Enforced by `T-25`/`T-26` + the `verify-static.mjs` negative asserts |
+| RES-X2 | **No dead links or dangling routes** — the removed page must 404 through the styled 404, and nav, sitemap, canonicals, and robots must no longer reference it. | MUST | Enforced by `T-28` |
+| RES-X3 | **No orphaned PDF header rule** — `dist/_headers` must not carry a `/resume.pdf` cache rule for a file that does not exist. | MUST | Enforced by `T-27` |
+| RES-X4 | **Person structured data survives** — removing the résumé must not remove or degrade the Home `Person` JSON-LD (name, `jobTitle`, `sameAs`). SEO-1/HOME-6 are unchanged. | MUST | Regression guard in `T-26` |
 
 ### 5.3 About Page
 
@@ -127,7 +159,7 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 | ID | Requirement | Priority | Notes |
 |---|---|---|---|
 | SEO-1 | Person JSON-LD on Home page (name, jobTitle, url, sameAs for GitHub/LinkedIn) | MUST | Enables AI assistants and search engines to parse identity |
-| SEO-2 | ProfilePage JSON-LD on Résumé page | MUST | Promoted from SHOULD — name-commonness makes structured data critical |
+| SEO-2 | ~~ProfilePage JSON-LD on Résumé page~~ | **REMOVED (v1.5)** | The only ProfilePage carrier was the résumé page. Person JSON-LD (SEO-1) is unaffected and remains the sole structured-data node. |
 | SEO-3 | `sitemap.xml` generated at build time, includes all pages | MUST | — |
 | SEO-4 | `robots.txt` allows crawling of all pages **and explicitly permits AI-assistant crawlers** (OAI-SearchBot, ChatGPT-User, PerplexityBot, ClaudeBot) plus a `Sitemap:` line | MUST | Researched 2026: blanket disallows silently block AI visibility; allow AI bots explicitly |
 | SEO-5 | Self-hosted subset fonts — no third-party font CDN | MUST | No Google Fonts, no external requests |
@@ -145,11 +177,11 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 |---|---|---|---|
 | DEP-1 | Deploy to **Cloudflare Pages** free tier (platform decided by research) | MUST | Researched 2026: unlimited bandwidth/requests, no commercial restriction, `_headers` file for cache control. (Vercel Hobby: personal/non-commercial only, metered bandwidth.) Free subdomain, no custom domain |
 | DEP-2 | Deploy triggered on git push (CI/CD) | MUST | — |
-| DEP-3 | Build output is static HTML/CSS/images/PDF only | MUST | Zero-JS output; PDF is a static file, not build-generated |
+| DEP-3 | Build output is static HTML/CSS/images only | MUST | Zero-JS output; no PDF artifact (v1.5 removed the only non-HTML asset) |
 | DEP-4 | Build time < 60 seconds on representative content | SHOULD | — |
 | DEP-5 | Subdomain alias preference: **`mattoconn.pages.dev`** (Cloudflare Pages) | MUST | Verify availability at deploy time |
 | DEP-6 | Edit workflow: edit markdown → commit → push → auto-deploy in minutes | MUST | No CMS, no backend |
-| DEP-7 | `/resume.pdf` served with `Cache-Control: public, max-age=60, must-revalidate` (Cloudflare `_headers` file) | MUST | Stable path + short TTL = updates propagate within ~1 min of deploy |
+| ~~DEP-7~~ | ~~`/resume.pdf` served with `Cache-Control: public, max-age=60, must-revalidate`~~ | **REMOVED (v1.5)** | No PDF exists. The `_headers` generator's only remaining job is the preview `noindex` rule (SEO-12). See RES-X3. |
 
 ---
 
@@ -175,6 +207,7 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 
 | Item | Why deferred |
 |---|---|
+| Résumé page, downloadable PDF, or any hosted copy of the résumé | **Cancelled, not deferred** (owner decision 2026-09-26). The maintained work history lives on LinkedIn; the hero links there. If search urgency ever justifies it, it is its own project with its own hosting/freshness decision — never a v1 add-on. |
 | Projects showcase / case studies | Highest-value v2 addition; content problem, not site problem |
 | Blog / technical writing | Registry supports it; content not ready |
 | Contact form or exposed email | Links-only in v1; revisit when search urgency rises |
@@ -200,9 +233,10 @@ Derived from the three target personas in the vision document:
 | **6-second identity parse** | Recruiter reads name, role, domain, stack in ≤ 6s on first load | Scanning Recruiter | Usability test: give URL, time to correct verbal summary |
 | **GitHub/LinkedIn findability** | Links visible above fold or within one scroll on Home page, no hunting | Scanning Recruiter | Usability test + manual inspection |
 | **Page load < 2s on mobile** | Full render under 2s on simulated 3G | All | Lighthouse / WebPageTest on mobile preset |
-| **Résumé download ≤ 1 click** | From the résumé landing page, PDF download reachable in one click/tap | Hiring Manager | Manual inspection on mobile |
-| **ATS-ready PDF** | Supplied PDF is text-extractable (verified once when PDF is added to repo) | Hiring Manager | Upload to ATS tool (e.g., Jobscan) at content-add time |
+| **Depth is routed, not absent** | A hiring manager reaches a judgment signal in one click and a maintained work history in the next, with no dead ends — About page is readable and links to nothing broken, and GitHub/LinkedIn are both one click from the hero | Hiring Manager | Manual walk: Home → About → external links; confirm every link resolves and no removed page is reachable |
+| **About page earns the depth role** | Peer or engineer reading only Home + About can state what the owner works on and how they think, without opening a résumé | Hiring Manager + Curious Peer | Informal test: give Home + About URLs, ask "what do you remember, and how do they seem to think?" |
 | **About page memorability** | Peer describes the owner as a person (not just a professional) after reading | Curious Peer | Informal test: give URL, ask "what do you remember?" |
+| **No résumé residue** | Zero résumé artifacts in the built site: no résumé page/route, no résumé link, no PDF, no PDF header rule, no ProfilePage JSON-LD, no `resume` enum value | Engineering quality | `npm run build && npm run verify` (negative asserts) + `rg -i 'resume' dist/ src/ scripts/` returns only the retired-ticket references in comments |
 | **Extensibility verified** | Adding a new section requires exactly 2 file changes: a typed content file (self-registering via frontmatter) + a template component. Zero changes to nav/layout/sitemap/schema code. | Engineering quality | Manual test: add a stub "Now" section (`now.md` + `NowSection.astro`), confirm it appears in nav and sitemap without touching core files |
 
 ---
@@ -215,9 +249,9 @@ Derived from the three target personas in the vision document:
 | Content model | Astro **Content Layer API** (`src/content.config.ts`, glob loader + Zod-typed schema) | Enables typed section registry; compiler-checked |
 | Styling | Scoped CSS / Tailwind (TBD) | No client-side JS; CSS-only |
 | Fonts | Self-hosted subset (WOFF2) | No third-party CDN; performance + privacy |
-| PDF handling | Static artifact — owner-provided PDF committed to `public/resume.pdf` | No build-time generation; zero tooling complexity; owner controls content |
-| Hosting | **Cloudflare Pages** free tier | `mattoconn.pages.dev`; git-push deploy; unlimited bandwidth/requests; `_headers` for cache policy |
-| Structured data | Person + ProfilePage JSON-LD (inline in HTML) | Machine-readable; sitemap.xml |
+| ~~PDF handling~~ | ~~Static artifact — owner-provided PDF committed to `public/resume.pdf`~~ **REMOVED (v1.5)** | No PDF in v1; the site ships HTML/CSS/fonts only. |
+| Hosting | **Cloudflare Pages** free tier | `mattoconn.pages.dev`; git-push deploy; unlimited bandwidth/requests; `_headers` for the preview-noindex policy |
+| Structured data | Person JSON-LD (inline in HTML) | Machine-readable; sitemap.xml. ProfilePage JSON-LD removed with the résumé page (SEO-2) |
 | Future interactivity | React islands (Astro) — available when earned | Zero islands in v1 |
 
 ---
@@ -230,14 +264,25 @@ Derived from the three target personas in the vision document:
 | US-1 | As a scanning recruiter, I want to see the engineer's name, role, domain, and primary stack above the fold so I can assess fit in 6 seconds | P0 | Name, role, domain, stack visible without scrolling on 375px mobile viewport; real text, not image |
 | US-2 | As a scanning recruiter, I want to find GitHub and LinkedIn links on the Home page so I don't have to hunt for contact paths | P0 | Both links visible on Home page (above fold or within one scroll) |
 | US-3 | As a scanning recruiter, I want the page to load in under 2 seconds on mobile so I don't bounce | P0 | Full render < 2s on 3G simulation; verified with Lighthouse |
-| US-4 | As a curious peer, I want to navigate to the Résumé page and About page from the Home page | P0 | Both links present in navigation or hero section |
+| US-4 | As a curious peer, I want to navigate to the About page from the Home page | P0 | The About link is present in navigation or hero section |
 
-### Résumé Page + PDF
+### Résumé Page + PDF — **REMOVED in v1.5**
+
+> **Tombstone.** `US-5`, `US-6`, `US-7` are cancelled by owner decision (2026-09-26). IDs are
+> permanently retired and must not be reused.
+
+| ID | Story | Status |
+|---|---|---|
+| US-5 | ~~As a hiring manager, I want to reach the résumé page and download the PDF in one click~~ | **REMOVED (v1.5)** |
+| US-6 | ~~As a hiring manager, I want the PDF to be text-extractable so ATS systems can parse it~~ | **REMOVED (v1.5)** |
+| US-7 | ~~As the site owner, I want the PDF to update promptly after I push a new version~~ | **REMOVED (v1.5)** |
+
+**Replacing story (the depth signal v1 now carries):**
+
 | ID | Story | Priority | Acceptance Criteria |
 |---|---|---|---|
-| US-5 | As a hiring manager, I want to reach the résumé page and download the PDF in one click so I can evaluate depth without friction | P0 | Landing page renders cleanly on mobile; prominent download button links to `/resume.pdf` |
-| US-6 | As a hiring manager, I want the PDF to be text-extractable so ATS systems can parse it | P0 | PDF is not an image scan; text extraction verified at content-add time |
-| US-7 | As the site owner, I want the PDF to update promptly after I push a new version so visitors always see the latest résumé | P1 | PDF served with reasonable cache headers; new version live within one deploy cycle |
+| US-15 | As a hiring manager, I want the site to route me to the maintained work history and the owner's output rather than re-publish a résumé, so I get depth without a stale document | P0 | Home links to LinkedIn and GitHub, both resolvable, no hunting; About page gives an authored judgment signal; no résumé artifact exists on the site (PRD §8 "No résumé residue") |
+| US-16 | As the site owner, I want the site to carry no résumé so I never have to keep a hosted document fresh or worry about it going stale | P0 | Zero résumé artifacts in the build (`npm run verify` negative asserts pass); a future change to re-add one is impossible without a new registry content file |
 
 ### About Page
 | ID | Story | Priority | Acceptance Criteria |
@@ -266,12 +311,13 @@ Derived from the three target personas in the vision document:
 
 | # | Decision | Consequence |
 |---|---|---|
-| **OQ-1** | **Résumé sourcing — static bundling, direct PDF link.** The owner has a current résumé PDF. The entire résumé surface is a direct file link to `/resume.pdf` (committed in `public/`). No résumé content is duplicated in site HTML. Remote sourcing (Google Drive/CDN) rejected — violates NF-4 (zero third-party requests) and adds URL-churn/rate-limit risk. | Section 5.2 rewritten: landing page with download button only. RES-1 (web-rendered résumé) and RES-2 (build-time generation) deleted. DEP-5 (PDF generation) removed from build pipeline. §4.1 updated with decision note. Success metrics updated. |
+| ~~**OQ-1**~~ | ~~**Résumé sourcing — static bundling, direct PDF link.**~~ **SUPERSEDED by OQ-7 (v1.5).** Retained for history: the owner had a current résumé PDF and the surface was a direct file link to `/resume.pdf`. | All of §5.2 is tombstoned. The `/resume.pdf` path, its cache rule (DEP-7), the ATS obligation (RES-3), and the landing page no longer exist. |
 | **OQ-2** | **First case-study project — parrotlet.** The first Projects-section case study (v2) will be **parrotlet** (small scope, finishable quickly). Requires a public repo + working demo before the case study is written. Non-blocking for v1. | Recorded in §11.1 V2 Backlog below. No v1 requirements affected. |
-| **OQ-3** | **Name commonness / SEO — name IS common, SEO is a first-class priority.** The owner's name is common online; winning exact-name search on a free subdomain is unlikely. SEO is still a priority — realistic wins are rich parsing when found, non-name queries, and being the authoritative entity linkable from other profiles. Custom domain is the single largest future SEO lever (deferred v1). | SEO-2 (ProfilePage JSON-LD) promoted to MUST. New MUST requirements added: `<title>` policy, meta descriptions, Open Graph tags, semantic HTML landmarks, no orphan URLs (SEO-6 through SEO-10). §5.5 includes SEO context note. |
-| **OQ-4** | **Résumé detail level — out of scope for the site.** The résumé's internal content/detail level is entirely the owner's concern and lives in the provided PDF. Nothing to author in the site. | No site requirements affected. RES-3 places ATS-verification responsibility on the supplied file, not the build. |
-| **OQ-5** | **Staleness policy — not a concern.** Owner updates whenever they have updates; no forced cadence, no date-stamping, no "90-day" rule. | "Stale ≠ abandoned" metric removed from §8. No date-stamp requirements added. |
+| **OQ-3** | **Name commonness / SEO — name IS common, SEO is a first-class priority.** The owner's name is common online; winning exact-name search on a free subdomain is unlikely. SEO is still a priority — realistic wins are rich parsing when found, non-name queries, and being the authoritative entity linkable from other profiles. Custom domain is the single largest future SEO lever (deferred v1). | SEO-1 remains MUST. SEO-6 through SEO-12 added as MUST. **SEO-2 was promoted to MUST by this decision and is now removed by OQ-7** — the loss of ProfilePage structured data is an accepted consequence of removing the résumé page. §5.5 context note updated. |
+| ~~**OQ-4**~~ | ~~**Résumé detail level — out of scope for the site.**~~ **SUPERSEDED by OQ-7 (v1.5).** Retained for history: the résumé's internal content and detail level were entirely the owner's concern, living in the provided PDF. | No longer applicable — there is no PDF and no résumé surface. |
+| **OQ-5** | **Staleness policy — not a concern.** Owner updates whenever they have updates; no forced cadence, no date-stamping, no "90-day" rule. | "Stale ≠ abandoned" metric removed from §8. No date-stamp requirements added. **Reinforced by v1.5:** removing the hosted PDF eliminates the single stalest-prone asset the site would have carried. |
 | **OQ-6** | **Subdomain alias — `mattoconn`.** Desired subdomain identity is `mattoconn`. Hosting research (2026) recommends **Cloudflare Pages**: unlimited bandwidth/requests, no commercial restriction, `_headers` for cache control; Vercel Hobby is personal/non-commercial only with metered bandwidth. | DEP-1/DEP-5 encode Cloudflare Pages (`mattoconn.pages.dev`, availability checked at deploy). §9 hosting row updated. |
+| **OQ-7** | **No résumé on the site (NEW, v1.5).** Owner decision, 2026-09-26: the résumé is not published here. The work history lives on LinkedIn (kept current by the owner, off-site, no staleness debt); the About page carries the authored judgment signal; GitHub carries the output. No résumé page, no PDF, no ProfilePage JSON-LD, no `resume` template enum value. | §4.1 scope cap drops to three surfaces. §5.2/RES-1..5, SEO-2, DEP-7, US-5..7 tombstoned; RES-X1..X4 and US-15/US-16 added as the removal's real obligations. Tickets T-9, T-14, T-24 **retired**; `T-25`..`T-28` delete the already-shipped résumé code **before** the first deploy (`T-19`), so the résumé is never publicly live. Any future return is a separate project (§7, §11.1). |
 
 ### 11.1 Follow-on Projects (not this project)
 
@@ -281,6 +327,7 @@ Derived from the three target personas in the vision document:
 
 | Item | Own project name | Status | Notes |
 |---|---|---|---|
+| Résumé surface (page + PDF) | e.g. `resume-surface` | **Cancelled by OQ-7** — not planned, not deferred to a date | Only if search urgency rises. Would need its own decisions on hosting, freshness, and staleness signalling. Registry makes it a 2-file change if it ever returns. |
 | First case-study project: **parrotlet** | (evidence-gathering, not site work) | Blocked on: public repo + working demo | Small scope; finish it before the Projects section is worth building. |
 | Projects showcase section | e.g. `projects-section` | Blocked on: parrotlet case study content | Registry supports it; section registration is a 2-file change per the extensibility promise. |
 | Custom domain | e.g. `custom-domain` | Deferred | Single largest future SEO lever. Cheap, consciously later. |
@@ -297,6 +344,7 @@ Derived from the three target personas in the vision document:
 | 1.2 | 2026-09-21 | Project Planner | Folded technical research into PRD: Cloudflare Pages decided (DEP-1), AI-crawler robots policy (SEO-4), canonical + noindex duplicate-host policy (SEO-11/12), PDF cache headers (DEP-7), Astro 7 Content Layer API nomenclature (§9) |
 | 1.3 | 2026-09-21 | Project Planner | Extensibility wording aligned with implemented mechanism (REG-6/US-9/§8): the content file *is* the registration entry (frontmatter drives the registry); a per-section template component is also required. Zero nav/layout/sitemap/schema changes unchanged. |
 | 1.4 | 2026-09-25 | Project Planner | Scope framing only — no requirement added, removed, or reworded. Named the project `initial-site`; retitled §7 and §11.1 so deferred capabilities are separate project directories under `projects/`, not phases of this one. Ticket scope unchanged. |
+| **1.5** | **2026-09-26** | **Project Planner** | **Scope reduction — résumé surface removed (owner decision, PRD OQ-7).** Four surfaces → **three** (Home, About, Section Registry). **Removed:** `RES-1`..`RES-5` (§5.2 tombstoned), `SEO-2` (ProfilePage JSON-LD), `DEP-7` (`/resume.pdf` cache headers), `US-5`/`US-6`/`US-7`; `OQ-1` and `OQ-4` superseded. **Added:** `RES-X1`..`RES-X4` (the removal's real obligations — no residue, no dead links, no orphaned header rule, Person JSON-LD survives), `US-15`/`US-16` (routing replaces hosting the résumé), §7/§9/§11.1 out-of-scope + cancelled rows, and two new §8 metrics. §3 hiring-manager persona re-pointed at About + LinkedIn + GitHub. **IDs tombstoned, never renumbered** — every ticket/design `§`-reference stays valid. Ticket impact: `T-9`/`T-14`/`T-24` retired; `T-25`..`T-28` added and sequenced **before** the first deploy (`T-19`). |
 
 ---
 

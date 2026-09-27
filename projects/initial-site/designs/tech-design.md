@@ -1,9 +1,23 @@
 # Technical Design — Personal Website v1 (Matthew O'Connell)
 
-> **Upstream:** `projects/initial-site/PRDs/PRD.md` (v1.2) · `projects/initial-site/tickets/tickets.md` (T-1..T-24)
+> **Upstream:** `projects/initial-site/PRDs/PRD.md` (v1.5) · `projects/initial-site/tickets/tickets.md` (T-1..T-28)
 > **Status:** Normative for implementation. Where this design and a ticket's *literal acceptance wording* conflict, this document **supersedes** the ticket wording — every such deviation is flagged inline with `[DEVIATION]`.
-> **Date:** 2026-09-21 · **Architect:** Software Architect (AI SDLC)  
+> **Date:** 2026-09-26 · **Architect:** Software Architect (AI SDLC)  
 > **Project:** `initial-site` — designs the site initialization only. The Section Registry's extensibility is a constraint on *this* design (future sections must not require core edits), not a work item; the sections themselves are separate projects.
+
+> ### ⚠ Revision 2026-09-26 — PRD v1.5 removed the résumé surface
+>
+> This design is re-issued against the **three-surface** site (Home, About, Section Registry) with
+> **no résumé page, no résumé PDF, and no `ProfilePage` structured data** (PRD OQ-7). Sections that
+> changed are marked **[v1.5]**. Because the résumé was already built and committed under the previous
+> revision, this document also specifies the **removal** that tickets `T-25`..`T-28` implement — the
+> removal is as much a part of the normative design as the original build was.
+>
+> - **Enum change (D1, §4.1/§4.2):** `TEMPLATES` drops `'resume'` → `['home','about','projects','blog','now','uses']`.
+> - **Deleted files (T-25/T-26):** `src/content/sections/resume.md`, `src/templates/ResumeSection.astro`, `src/components/JsonLdProfilePage.astro`. **`public/` does not exist and is not created** — the Astro scaffold's `public/` was deleted at T-7 (§12.5) and nothing ever replaced it, because the PDF ticket (T-24) was cancelled before it ran.
+> - **Script changes (T-27):** `gen-headers.mjs` loses the `/resume.pdf` rule and emits **nothing** on production; `verify-static.mjs` swaps its résumé presence-assert for **negative** residue asserts; `subset-fonts.mjs` drops the deleted page from its sweep.
+> - **Token rename (T-26):** `.btn-download` → `.btn-primary` (its only surviving consumer is the 404 "Back to home" link).
+> - **Surviving unchanged:** `Person` JSON-LD (T-13) is the site's only structured-data node and is regression-guarded (`RES-X4`); the preview-`noindex` `_headers` mechanism (SEO-12) and the trailing-slash policy (R8) are untouched.
 
 ---
 
@@ -18,24 +32,24 @@ The **Section Registry is the keystone** of the system. All site structure — p
 ┌──────────────────────────────┐   ┌───────────────────────────┐   ┌──────────────────────────────┐
 │ src/content/sections/        │   │ src/content.config.ts     │   │ src/pages/[...slug].astro     │
 │   home.md  (order 1)         │──▶│   glob loader + Zod schema │──▶│   getStaticPaths() → routes  │
-│   resume.md (order 2)        │   │   (closed template enum)   │   │   /   /resume/  /about/       │
-│   about.md (order 3)         │   │                           │   │        │                      │
-└──────────────────────────────┘   │ src/config/templates.ts   │   │        ▼  import.meta.glob   │
-                                   │   TEMPLATES const (cap)   │   │   src/templates/*Section.astro│
-          TEMPLATES, sectionPath ◀─│ src/config/sections.ts    │   └──────────────┬───────────────┘
+│   about.md (order 2)         │   │   (closed template enum)   │   │   /   /about/                │
+│                              │   │                           │   │        │                      │
+│   [no resume.md — v1.5]      │   │ src/config/templates.ts   │   │        ▼  import.meta.glob   │
+└──────────────────────────────┘   │   TEMPLATES const (cap)   │   │   src/templates/*Section.astro│
+           TEMPLATES, sectionPath ◀─│ src/config/sections.ts    │   └──────────────┬───────────────┘
                                    │   getSections() sorted    │                  │ layout
-              SITE_URL ◀───────────│ src/config/site.ts        │   ┌──────────────▼───────────────┐
+               SITE_URL ◀───────────│ src/config/site.ts        │   ┌──────────────▼───────────────┐
                                    └───────────────────────────┘   │ src/layouts/BaseLayout.astro  │
                                                                   │  <header>→Nav (registry-derived)│
    NAV (T-5)  ────────────── Nav.astro iterates getSections()      │  <main>  →slot→ <template>     │
    SITEMAP (T-15) ────────── @astrojs/sitemap over registry routes │  <footer>→copyright (home name)│
    CANONICAL (T-12) ──────── absoluteUrl(sectionPath(entry))       └──────────────────────────────┘
    ROBOTS (T-16) ─────────── Sitemap: {SITE_URL}/sitemap-index.xml
-   JSON-LD (T-13/14) ─────── src/config/person.ts (single facts source)
+   JSON-LD (T-13) ────────── src/config/person.ts (single facts source)
 
-   BUILD: astro build ─▶ dist/ (static) ─▶ node scripts/gen-headers.mjs ─▶ dist/_headers
+   BUILD: astro build ─▶ dist/ (static) ─▶ node scripts/gen-headers.mjs ─▶ dist/_headers (previews only)
    DEPLOY: git push ─▶ Cloudflare Pages (production branch main) ─▶ https://mattoconn.pages.dev
-   GATE: npm run verify (zero-JS + zero-third-party + presence asserts) — retrofitted after T-20
+   GATE: npm run verify (zero-JS + zero-third-party + presence asserts + no-résidue asserts)
 ```
 
 ### 1.2 Data flow
@@ -45,7 +59,13 @@ The **Section Registry is the keystone** of the system. All site structure — p
 3. `getSections()` (sorted by `order`) is the single registration query. `sectionPath(entry)` is the **single** slug→URL mapping (home → `/`, others → `/{slug}/`).
 4. `[...slug].astro` `getStaticPaths()` emits one route per section; `import.meta.glob('../templates/*.astro')` dispatches to `{TemplateName}Section.astro`.
 5. `Nav.astro`, `Seo.astro` (canonical), `@astrojs/sitemap`, and `robots.txt.ts` all read the same helpers — so nav, sitemap, and canonicals are byte-consistent by construction.
-6. Templates and JSON-LD read shared typed data (`home.md` frontmatter + `src/config/person.ts`). Every personal fact is a marked `HUMAN COPY` placeholder until T-23/T-24.
+6. Templates and JSON-LD read shared typed data (`home.md` frontmatter + `src/config/person.ts`). Every personal fact is a marked `HUMAN COPY` placeholder until T-23.
+
+**[v1.5] Deletion is a first-class data-flow operation.** Steps 2–5 are registry-derived, so deleting a
+content file removes its route, nav entry, sitemap URL, and canonical in one move with **zero** code
+edits — that is `T-25`, and it is the design's proof that the keystone claim is real rather than
+aspirational. Only the *non-registry* residue (Home's link row, the JSON-LD component, the header
+rule, the CI asserts) needs the separate sweeps in `T-26`/`T-27`.
 
 ### 1.3 Deployment topology
 
@@ -64,7 +84,8 @@ The **Section Registry is the keystone** of the system. All site structure — p
 | No custom domain | `SITE_URL` default `https://mattoconn.pages.dev` only |
 | No third-party requests on load | Self-hosted subset fonts; `verify-static.mjs` origin check (NF-4) |
 | Typed discipline / Zod at boundary | Zod schema in `content.config.ts`; TypeScript strict; helpers in `src/config/*` (type-system + boundary-discipline) |
-| Every personal fact is HUMAN COPY until T-23/T-24 | Skeleton files carry literal `HUMAN COPY` markers; `person.ts` jobTitle is a marked constant; devs never invent facts |
+| Every personal fact is HUMAN COPY until T-23 | Skeleton files carry literal `HUMAN COPY` markers; `person.ts` jobTitle is a marked constant; devs never invent facts |
+| **No résumé artifact anywhere in the build** **[v1.5]** | No `resume` content file / template / enum value, no `ProfilePage` node, no PDF, no PDF header rule; `verify-static.mjs` fails on any residue (`RES-X1`, `RES-X3`, owned by T-25..T-27) |
 | Single `SITE_URL` source | `src/config/site.ts`; used by astro.config, Seo, JSON-LD, robots, gen-headers consumers; `CF_PAGES_URL` never used as site URL (T-4) |
 | Subdomain never silently changed | T-19 escalate rule |
 
@@ -72,12 +93,13 @@ The **Section Registry is the keystone** of the system. All site structure — p
 
 | # | Decision (normative) |
 |---|---|
-| D1 (enum) | **Pre-include** the four capped future templates: `TEMPLATES = ['home','resume','about','projects','blog','now','uses']`. See §4.2 for justification. |
+| D1 (enum) | **Pre-include** the four capped future templates: `TEMPLATES = ['home','about','projects','blog','now','uses']` **[v1.5: `'resume'` removed — PRD OQ-7]**. See §4.2 for justification. |
 | D2 (routing) | Single catch-all `src/pages/[...slug].astro`; home → `/` via `params: { slug: undefined }`. See §5. |
 | D3 (styling) | Plain **scoped CSS** + one `global.css` reset/tokens. No Tailwind. See §6. |
-| D4 (fonts) | **IBM Plex Sans** (OFL), weights 400/600, `@font-face` with `font-display: swap`, subset via `glyphhanger` to page-used glyphs. See §7. |
+| D4 (fonts) | **IBM Plex Sans** (OFL), weights 400/600, `@font-face` with `font-display: swap`, subset via `subset-font` to page-used glyphs. See §7. |
 | D5 (404) | `src/pages/404.astro` is a fixed page (NOT a registry section); markup + `noindex` inline; `error` is **not** an enum value. |
-| D6 (preview noindex) | Detect via `CF_PAGES_BRANCH` ≠ `main` (production branch). See §10. |
+| D6 (preview noindex) | Detect via `CF_PAGES_BRANCH` ≠ `main` (production branch). See §10. **[v1.5: this rule is now the *only* output of `gen-headers.mjs`.]** |
+| **D7 (no résumé) [v1.5]** | The résumé is not published. Deletion, not deactivation: content file, template, JSON-LD component, enum value, PDF, PDF header rule, and CI presence-asserts all go. `Person` JSON-LD survives. Any reinstatement requires a new PRD version (PRD OQ-7) — a dev must not "helpfully" restore it. |
 
 ---
 
@@ -91,8 +113,8 @@ The **Section Registry is the keystone** of the system. All site structure — p
 | Static analysis | `@astrojs/check` + `typescript`; script `"check": "astro check"` | T-1 |
 | Integrations | `@astrojs/sitemap` | T-15 |
 | Validation | `zod` (imported as `z` from `astro/zod` in content config; also a direct dependency per T-1) | T-2 |
-| Fonts | `glyphhanger` (devDep, Node-based; **not** Python WeasyPrint) + vendored IBM Plex Sans TTFs | T-17 (D4) |
-| Node | `node >= 20` (**22 LTS recommended**); set `NODE_VERSION=22` env on the Cloudflare Pages project if its default lags | Astro 7 engine requirement |
+| Fonts | `subset-font` (devDep, pure Node/WASM; **not** Python WeasyPrint, **not** `glyphhanger` — see §7 amendment) + vendored IBM Plex Sans TTFs | T-17 (D4) |
+| Node | `node >= 22.12.0` — the floor `package.json` actually declares (Astro 7.3.3's requirement); set `NODE_VERSION=22` env on the Cloudflare Pages project if its default lags | Astro 7 engine requirement |
 | Output | `dist/`, `build.format: 'directory'` (default), `trailingSlash: 'always'` | §4.4, §9 |
 | Package scripts | `dev`, `build`, `preview`, `check`, `verify`, `fonts:subset` (exact block in §10.2) | T-1, T-18, T-20, T-17 |
 
@@ -110,14 +132,13 @@ personal-website/
 ├── package.json                     # T-1 + T-17/T-18/T-20 scripts
 ├── package-lock.json                # T-1
 ├── tsconfig.json                    # T-1: extends astro/tsconfigs/strict
-├── public/
-│   └── resume.pdf                   # T-24 (HUMAN-BLOCKED; absent until then — link 404s by design)
 ├── scripts/
 │   ├── font-src/                    # T-17: vendored IBM Plex Sans TTFs (OFL), subsetting inputs
 │   │   ├── IBMPlexSans-Regular.ttf
 │   │   └── IBMPlexSans-SemiBold.ttf
-│   ├── gen-headers.mjs              # T-18: writes dist/_headers (cache + preview noindex)
-│   └── verify-static.mjs            # T-20: zero-JS / zero-third-party / presence gate
+│   ├── gen-headers.mjs              # T-18 + T-27: writes dist/_headers (preview noindex ONLY)
+│   ├── subset-fonts.mjs             # T-17 + T-27: sweeps built HTML for the glyph set
+│   └── verify-static.mjs            # T-20 + T-27: zero-JS / zero-third-party / presence / no-résidue gate
 └── src/
     ├── content.config.ts            # T-2: sections collection (glob + Zod, closed enum)
     ├── assets/
@@ -129,31 +150,37 @@ personal-website/
     ├── components/
     │   ├── Nav.astro                # T-5: registry-driven nav
     │   ├── Seo.astro                # T-12: title/description/OG/canonical
-    │   ├── JsonLdPerson.astro       # T-13: Person node (Home)
-    │   └── JsonLdProfilePage.astro  # T-14: ProfilePage node (Résumé)
+    │   └── JsonLdPerson.astro       # T-13: Person node (Home) — the ONLY JSON-LD in v1.5
     ├── config/
-    │   ├── templates.ts             # T-2: TEMPLATES enum const + Template type + name mapper (pure module)
+    │   ├── templates.ts             # T-2/T-25: TEMPLATES enum const + Template type + name mapper
     │   ├── sections.ts              # T-3: getSections(), sectionPath(); re-exports templates.ts
     │   ├── site.ts                  # T-4: SITE_URL, SITE_ORIGIN, path(), absoluteUrl()
-    │   └── person.ts                # T-13/T-14: single Person facts source (T-23 updates facts)
+    │   └── person.ts                # T-13: single Person facts source (T-23 updates facts)
     ├── content/
     │   └── sections/
     │       ├── home.md              # T-3 skeleton → T-23 HUMAN copy
-    │       ├── resume.md            # T-3 skeleton
-    │       └── about.md             # T-3 skeleton → T-23 HUMAN copy
+    │       └── about.md             # T-3 skeleton (order: 2 after T-25) → T-23 HUMAN copy
     ├── layouts/
     │   └── BaseLayout.astro         # T-6: html/head-slot/header/main/footer/skip-link
     ├── pages/
     │   ├── [...slug].astro          # T-7: registry routes + template dispatch (+ T-12 head wiring)
-    │   ├── 404.astro                # T-11: fixed not-found page, noindex
+    │   ├── 404.astro                # T-11: fixed not-found page, noindex (T-26: .btn-primary)
     │   └── robots.txt.ts            # T-16: prerendered robots.txt endpoint
     └── templates/
-        ├── HomeSection.astro        # T-8 (+ T-13 JSON-LD)
-        ├── ResumeSection.astro      # T-9 (+ T-14 JSON-LD)
+        ├── HomeSection.astro        # T-8 (+ T-13 JSON-LD; T-26 trims link row)
         └── AboutSection.astro       # T-10
 ```
 
-Generated (gitignored): `dist/**` incl. `dist/_headers` (T-18), `dist/sitemap-index.xml`, `dist/sitemap-0.xml` (T-15).
+Generated (gitignored): `dist/**` incl. `dist/_headers` (**preview builds only** — T-27), `dist/sitemap-index.xml`, `dist/sitemap-0.xml` (T-15).
+
+**[v1.5] Deleted by the removal tickets** (present in git history, absent from the target tree):
+
+| Deleted path | Deleted by | Note |
+|---|---|---|
+| `src/content/sections/resume.md` | T-25 | Removing it drops the route, nav entry, and sitemap URL automatically |
+| `src/templates/ResumeSection.astro` | T-25 | Must be deleted in the **same commit** as the content file — a registered section with a missing template is a build failure (§5.1) |
+| `src/components/JsonLdProfilePage.astro` | T-26 | `ProfilePage` ceases to exist on this site; do not re-home it |
+| `public/resume.pdf` | **never created** | T-24 was cancelled before execution; `public/` was already deleted at T-7, so there is no directory and no file |
 
 > Optional, ticket-owned: `README.md` (T-19 "deploy note (optional)"). No other unowned files are required — see §12.5.
 
@@ -166,10 +193,10 @@ Generated (gitignored): `dist/**` incl. `dist/_headers` (T-18), `dist/sitemap-in
 ```ts
 // Pure module: NO imports from 'astro:content' — imported by both content.config.ts
 // (schema, runs in the content-layer context) and sections.ts (app context).
-export const TEMPLATES = ['home', 'resume', 'about', 'projects', 'blog', 'now', 'uses'] as const;
+export const TEMPLATES = ['home', 'about', 'projects', 'blog', 'now', 'uses'] as const;
 export type Template = (typeof TEMPLATES)[number];
 
-/** 'home' → 'HomeSection', 'resume' → 'ResumeSection', ... */
+/** 'home' → 'HomeSection', 'about' → 'AboutSection', ... */
 export function templateToComponentName(template: Template): string {
   return `${template.charAt(0).toUpperCase()}${template.slice(1)}Section`;
 }
@@ -183,7 +210,7 @@ export function templateToComponentName(template: Template): string {
 - REG-7's cap is preserved precisely: the enum remains **closed** at exactly the four budgeted future sections; the 404's `error` rendering stays out of the registry (§5.4) so no enum value is orphaned.
 - If an **unbudgeted** template is ever required (beyond REG-7's four), the one-line extension is: append to `TEMPLATES` in `src/config/templates.ts` and add `{Name}Section.astro` — documented here as the sanctioned extension point.
 
-**Exact enum value set for v1:** `home | resume | about | projects | blog | now | uses` (7 values). Only `home|resume|about` have content files + templates in v1; the other four are valid *types* that simply have no registered content yet. `[DEVIATION from T-2 literal wording]`: T-2's acceptance lists `z.enum(['home','resume','about','error'])`; this design moves the enum to the shared `TEMPLATES` const, drops `error` (resolved per the ticket's own "exact binding decided in tech design §Routing & Templates" note), and pre-includes the four capped names per REG-7. A content file with `template: 'error'` or `template: 'bogus'` **fails the build** (closed enum) — satisfying T-2's negative test.
+**Exact enum value set for v1.5:** `home | about | projects | blog | now | uses` (6 values). Only `home|about` have content files + templates in v1.5; the other four are valid *types* that simply have no registered content yet. `[DEVIATION from T-2 literal wording]`: T-2's acceptance lists `z.enum(['home','resume','about','error'])`; this design moves the enum to the shared `TEMPLATES` const, drops `error` (resolved per the ticket's own "exact binding decided in tech design §Routing & Templates" note), pre-includes the four capped names per REG-7, and — per PRD v1.5 OQ-7 — drops `'resume'`, which T-25 executes. A content file with `template: 'error'`, `template: 'resume'`, or `template: 'bogus'` **fails the build** (closed enum) — satisfying T-2's negative test, and the `'resume'` case doubles as a permanent guard against the retired surface returning.
 
 ### 4.3 `src/content.config.ts` — the schema (Zod)
 
@@ -210,7 +237,7 @@ const sections = defineCollection({
 export const collections = { sections };
 ```
 
-- Home is the only section that *uses* `github`/`linkedin`; other sections simply omit them. `description` doubles as the page meta description and as the home proof line / résumé context line — one source, unique per page (SEO-7).
+- Home is the only section that *uses* `github`/`linkedin`; other sections simply omit them. `description` doubles as the page meta description and as the home proof line — one source, unique per page (SEO-7). **[v1.5]** The résumé's context-line role is gone with the page; nothing else in the schema existed for it.
 - `slug` must always equal the content file basename. `getSections()` enforces this invariant (fail-fast, §4.5) so `entry.id`/`entry.data.slug` can never diverge.
 - Type discipline note: all validation happens **here** (the content boundary). App code consumes already-validated `CollectionEntry<'sections'>` types and never re-parses.
 
@@ -262,24 +289,12 @@ linkedin: "https://www.linkedin.com/" # HUMAN COPY — LinkedIn profile URL (rep
 ```
 
 ```md
-# src/content/sections/resume.md
----
-slug: resume
-title: Résumé
-navLabel: Résumé
-order: 2
-template: resume
-description: "HUMAN COPY — one line of context for the résumé landing page (≤160 chars)."
----
-```
-
-```md
 # src/content/sections/about.md
 ---
 slug: about
 title: About
 navLabel: About
-order: 3
+order: 2          # [v1.5] was 3; T-25 re-points to 2 now that résumé.md is gone
 template: about
 description: "HUMAN COPY — one-line teaser of the About page (≤160 chars)."
 ---
@@ -292,6 +307,8 @@ description: "HUMAN COPY — one-line teaser of the About page (≤160 chars)."
 
 **HUMAN COPY — paragraph 4.** Optional closing.
 ```
+
+**[v1.5] `src/content/sections/resume.md` no longer exists.** T-3 created it as a third skeleton; T-25 deletes the file outright. No replacement skeleton, stub, or `hidden: true` placeholder is created — an empty résumé route is exactly the artifact PRD v1.5 forbids. `order` is the only thing that needed a hand edit: `about.md` moves `3 → 2` so the two sections sort `home, about` with no gap.
 
 ### 4.5 `src/config/site.ts` — the single URL source (T-4)
 
@@ -314,7 +331,7 @@ export function absoluteUrl(p: string): string {
 }
 ```
 
-- **ONE trailing-slash policy, stated:** pages use `trailingSlash: 'always'` (surfaced in `astro.config.mjs`), so `/resume/` is the only canonical form; file endpoints (`robots.txt`, `resume.pdf`, `sitemap-*.xml`) never take a slash. Nav `href`s, canonicals, and sitemap URLs are therefore **byte-identical** (R8, SEO-11).
+- **ONE trailing-slash policy, stated:** pages use `trailingSlash: 'always'` (surfaced in `astro.config.mjs`), so `/about/` is the only canonical form; file endpoints (`robots.txt`, `sitemap-*.xml`) never take a slash. Nav `href`s, canonicals, and sitemap URLs are therefore **byte-identical** (R8, SEO-11). **[v1.5]** `resume.pdf` is deleted from this list along with the PDF itself.
 - `CF_PAGES_URL` is never read as the site URL (T-4 critical constraint) — previews get `noindex` instead (§10).
 - `astro.config.mjs` mirrors the same default from `process.env` (config runs in Node): `site: process.env.PUBLIC_SITE_URL ?? 'https://mattoconn.pages.dev'`.
 - `.env.example` documents `PUBLIC_SITE_URL` and `CF_PAGES_BRANCH` (for local noindex simulation); no real `.env` is committed.
@@ -370,21 +387,22 @@ const currentPath = sectionPath(entry);
 
 - **Dispatch** is `import.meta.glob('../templates/*.astro', { eager: true })` keyed to `templateToComponentName(template)` (PascalCase + `Section` suffix). A registered section whose component file is missing **fails the build** (loud, typed — a registry pointing at nothing is a programming error, not a 404 case). T-22's stub therefore needs exactly: `now.md` + `NowSection.astro` — the glob picks it up with **zero** changes to this file.
 - Contract to templates: every template receives `entry: SectionEntry` and `sections: SectionEntry[]` (the full ordered registry). Uniform, no per-section wiring.
-- Title pattern per SEO-6: home → `home.title`; others → `{home.title} — {entry.data.title}` (e.g. `Matthew O'Connell — Résumé`). `[NOTE]`: the PRD's SEO-6 example says "Matt O'Connell — {section}", but T-3 pins the home entry title as `Matthew O'Connell` — the pattern is mechanical off the registry, and spelling is owner copy (T-23). Tickets T-12 was aligned to this registry-derived pattern during plan review.
+- Title pattern per SEO-6: home → `home.title`; others → `{home.title} — {entry.data.title}` (e.g. `Matthew O'Connell — About`). `[NOTE]`: the PRD's SEO-6 example says "Matt O'Connell — {section}", but T-3 pins the home entry title as `Matthew O'Connell` — the pattern is mechanical off the registry, and spelling is owner copy (T-23). Tickets T-12 was aligned to this registry-derived pattern during plan review.
 
 ### 5.2 Built-route contract
 
 | Route | Source | Output | Head (via Seo) |
 |---|---|---|---|
 | `/` | `[...slug]` home entry (`slug: undefined`) | `dist/index.html` | `Matthew O'Connell` + home description |
-| `/resume/` | `[...slug]` resume entry | `dist/resume/index.html` | `Matthew O'Connell — Résumé` + resume description |
 | `/about/` | `[...slug]` about entry | `dist/about/index.html` | `Matthew O'Connell — About` + about description |
 | `/404/` (page) | `src/pages/404.astro` | `dist/404.html` | `404 — Page not found` + fixed description + `<meta name="robots" content="noindex">` |
 | `/robots.txt` (endpoint) | `src/pages/robots.txt.ts` (prerendered) | `dist/robots.txt` | — |
 
+**[v1.5] `dist/resume/index.html` is deleted from this table** (T-25). T-28 asserts its continued absence: `test ! -e dist/resume/index.html` and a built-asset scan for the string `resume`, so a regression that re-registers the section is caught by CI rather than by a visitor hitting a resurrected page.
+
 ### 5.3 `src/pages/404.astro` — the fixed 404 binding
 
-**Decision:** 404 is a **fixed page**, not a registry section, and there is **no ErrorSection.astro** (T-11's option is declined). Keeping `src/templates/` in a one-component-per-*shipped*-template relationship with the enum is an invariant worth more than a reusable error component: `glob` map keys == the shipped `TEMPLATES` subset (`home|resume|about`) is provable at a glance, while the four dormant enum values (`projects|blog|now|uses`) are valid types that simply have no component yet — a registered section without its component **fails the build** (§5.1), never silently 404s.
+**Decision:** 404 is a **fixed page**, not a registry section, and there is **no ErrorSection.astro** (T-11's option is declined). Keeping `src/templates/` in a one-component-per-*shipped*-template relationship with the enum is an invariant worth more than a reusable error component: `glob` map keys == the shipped `TEMPLATES` subset (`home|about`) is provable at a glance, while the four dormant enum values (`projects|blog|now|uses`) are valid types that simply have no component yet — a registered section without its component **fails the build** (§5.1), never silently 404s.
 
 ```astro
 ---
@@ -402,12 +420,14 @@ const path404 = '/404/';
     <p class="error-code" aria-hidden="true">404</p>
     <h1>Page not found</h1>
     <p>The page you're looking for doesn't exist.</p>
-    <a class="btn-download" href="/">Back to home</a>
+    <a class="btn-primary" href="/">Back to home</a>
   </section>
 </BaseLayout>
 ```
 
-`noindex` (SEO-3 hygiene), keyboard-focusable ≥44px home link, uses BaseLayout so all four pages share landmarks (T-6 verification), excluded from sitemap (§9).
+**[v1.5]** The 404 link is the **last consumer** of the résumé's download-button token, so `T-26` renames `.btn-download` → `.btn-primary`. **[Plan-review correction]** The token is **not** in `global.css` — it is Astro-scoped inside `src/pages/404.astro` (its own `<style>` block, originally "duplicated from ResumeSection"). So the rename touches **that file only** (markup at the `<a>` plus the four scoped style rules: base, `:hover`, `:focus`, `:focus-visible`). `global.css` has no button token and is not edited. The 404's markup is otherwise untouched.
+
+`noindex` (SEO-3 hygiene), keyboard-focusable ≥44px home link, uses BaseLayout so all three pages share landmarks (T-6 verification), excluded from sitemap (§9). **[v1.5]** was "all four pages" — T-28 re-runs the landmark/a11y sweep on the three-page set.
 
 ### 5.4 `src/pages/robots.txt.ts` (T-16)
 
@@ -460,7 +480,7 @@ Global allow-plus named AI-bot Allow blocks (SEO-4), **no Disallow rules anywher
 
 ### 6.1 Scoped CSS vs Tailwind — pick **plain scoped CSS**
 
-Defense: this is a zero-JS, four-page, three-template site with no shared component-library ambition. Scoped CSS ships as native `data-astro-*` attribute scoping — zero runtime, zero build-layer dependency, ~5 KB total CSS. Tailwind would add a build layer, an HTML class vocabulary, and a maintenance burden for zero interaction states. All global tokens/reset live in `src/assets/styles/global.css`; per-page/per-component styles live in each `.astro` file's `<style>` block (Astro auto-scopes). **No event-handler attributes, no `style=` attributes, no CSS-in-JS anywhere.**
+Defense: this is a zero-JS, three-page, two-template site with no shared component-library ambition. Scoped CSS ships as native `data-astro-*` attribute scoping — zero runtime, zero build-layer dependency, ~5 KB total CSS. Tailwind would add a build layer, an HTML class vocabulary, and a maintenance burden for zero interaction states. All global tokens/reset live in `src/assets/styles/global.css`; per-page/per-component styles live in each `.astro` file's `<style>` block (Astro auto-scopes). **No event-handler attributes, no `style=` attributes, no CSS-in-JS anywhere.**
 
 ### 6.2 Color palette (engineering taste, WCAG AA+)
 
@@ -502,10 +522,10 @@ Body text is `clamp(1rem …)`, `h1/h2` set in 600, em-dashes and apostrophes fr
 
 - **Mobile-first, 375px floor**: nothing wider than the viewport, no horizontal scroll (NF-2). `nav`, hero, and link rows are single-column stacks at ≤48rem.
 - **Hero structure (Home)**: `h1` (name) → lead line (role-in-domain) → stack line (primary stack) → proof line (`data.description`, muted) → link row. Left-aligned, real selectable text (HOME-1), zero animation (HOME-4).
-- **Link row** (Home): GitHub, LinkedIn from registry frontmatter; Résumé and About from `sectionPath` of the corresponding registry entries — never literal `/resume` (REG-3 discipline). Each link `min-height: 44px` with generous padding.
+- **Link row** (Home): GitHub, LinkedIn from registry frontmatter; About from `sectionPath()` of the `about` registry entry — never a literal `/about` (REG-3 discipline). **[v1.5]** the Résumé link is deleted (T-26), leaving a three-link row: **GitHub · LinkedIn · About**. This is the site's entire depth path (US-15/US-16), so the row must not be reduced further.
 - **Nav pattern**: `<header>` contains `<Nav>` (registry-iterated `<ul>`); brand = home item; links ≥44px hit area; active item gets `aria-current="page"` + accent color + underline (never color alone).
 - **Footer pattern**: one line — `© {year} {home.data.title}` — name read from the registry home entry, never hardcoded (T-6).
-- **Résumé CTA token** (the single primary action, T-9): `.btn-download` — `min-height: 48px`, `padding-inline: 1.5rem`, accent background, white text 600, radius 8px, `display:inline-flex; align-items:center`, `:hover` → `--color-accent-hover`, focus ring visible. Used also for the 404 "Back to home" link. No other CTAs on the résumé page.
+- **Primary-action token** (T-26): `.btn-primary` — `min-height: 48px`, `padding-inline: 1.5rem`, accent background, white text 600, radius 8px, `display:inline-flex; align-items:center`, `:hover` → `--color-accent-hover`, focus ring visible. **[v1.5] was `.btn-download`**, introduced for the résumé's "Download résumé PDF" CTA (T-9). With the page gone the only remaining consumer is the 404 "Back to home" link, so T-26 renames the class rather than leaving a token whose name advertises a deleted artifact. **[Plan-review correction] The token is Astro-scoped in `src/pages/404.astro`, not in `global.css`** — it was copied there from `ResumeSection.astro` when T-11 was written. T-26 edits `404.astro` only (the `<a>`'s class plus the scoped `.btn-*` rules); `global.css` is untouched. The Home link-row links are **not** primary buttons — they remain inline underlined text links (§6.5), which is why the rename is safe.
 
 ### 6.5 Accessibility baseline
 
@@ -519,13 +539,14 @@ Body text is `clamp(1rem …)`, `h1/h2` set in 600, em-dashes and apostrophes fr
 ### 6.6 Component hierarchy (Astro)
 
 ```
-[index] 404.astro ───────────────► BaseLayout.astro ──► Nav.astro (registry)
- [...slug].astro ── getStaticPaths ─► TemplateComponent (HomeSection | ResumeSection | AboutSection)
+[fixed] 404.astro ─────────────────► BaseLayout.astro ──► Nav.astro (registry)
+  [...slug].astro ── getStaticPaths ─► TemplateComponent (HomeSection | AboutSection)
    BaseLayout (slot:head = Seo.astro; slot:default = TemplateComponent)
-   HomeSection.astro ── JsonLdPerson.astro
-   ResumeSection.astro ── JsonLdProfilePage.astro
+   HomeSection.astro ── JsonLdPerson.astro          [v1.5: the site's ONLY JSON-LD node]
    AboutSection.astro (renders entry body via render(entry) → <Content />)
 ```
+
+**[v1.5]** `ResumeSection.astro` and `JsonLdProfilePage.astro` are deleted (T-25, T-26), so the hierarchy loses one branch and the JSON-LD surface collapses to a single component. T-26's `RES-X4` check exists precisely because `Person` now has no sibling guarding it: deleting the wrong import during the sweep must fail loudly in T-28, not silently strip structured data from the site.
 
 State: **zero client state** (static). Build-time data flows `props` + `Astro.props`; the only shared "state" is the registry (`getSections()`) and `SITE_URL`, both typed modules. Navigation changes: none beyond the registry (T-22 proves it).
 
@@ -536,20 +557,27 @@ State: **zero client state** (static). Build-time data flows `props` + `Astro.pr
 - **Family: IBM Plex Sans** (OFL-licensed). Rationale: engineered, unpretentious, distinctive without being decorative — matches the site's identity; single family per scope cap (vision §7 said serif-pairing is allowed but the tickets cap at one family, 1–2 weights).
 - **Weights: 400 (regular) + 600 (semibold)** — body + headings/CTA/nav.
 - **Source:** vendored TTFs at `scripts/font-src/` (downloaded from the IBM Plex OFL distribution during T-17 and **committed** so subsetting is hermetic/repeatable; never fetched at build time).
-- **Subsetting:** `glyphhanger` (Node; **not** Python WeasyPrint). One-shot command, documented and re-run when copy changes (T-23):
+- **Subsetting: `subset-font` (pure Node/WASM) — this is the normative tool.** It is a committed devDep in `package.json`, invoked through `scripts/subset-fonts.mjs`, and never at build time. Not Python WeasyPrint, and **not `glyphhanger`** (see the amendment note below — that was the original choice, replaced during T-17 because of a missing Python toolchain).
+
+The reproducible one-shot, re-run whenever the copy changes (T-23, or any new page):
 
 ```sh
-npx glyphhanger \
-  --whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 —–''’“”" \
-  --subset=scripts/font-src/IBMPlexSans-Regular.ttf \
-  --subset=scripts/font-src/IBMPlexSans-SemiBold.ttf \
-  --formats=woff2 --output=src/assets/fonts \
-  dist/index.html dist/resume/index.html dist/about/index.html dist/404.html
+npm run build && node scripts/subset-fonts.mjs
 ```
 
-- **AMENDED at T-17:** glyphhanger shells out to Python's `fonttools`+`brotli`, which are not installed on this machine (owner prefers no Python toolchain). The sanctioned alternative `subset-font` (pure Node/WASM) is used instead. The reproducible one-shot is `npm run build && node scripts/subset-fonts.mjs` (see that script's header). `scripts/subset-fonts.mjs` derives the glyph set by sweeping the built HTML (covering `é`, `©`, typographic quotes) plus the redundancy whitelist above, and writes the two pinned WOFF2 names below.
+`scripts/subset-fonts.mjs` derives the glyph set by sweeping the built HTML (covering `é`, `©`, typographic quotes) plus a hardcoded redundancy whitelist, and writes the two pinned WOFF2 names below.
 
-Rename the produced subset files to the pinned names `src/assets/fonts/ibm-plex-sans-400.woff2` and `ibm-plex-sans-600.woff2` (if the installed glyphhanger output naming differs, rename to these exact names — the CSS references them). The `.ttf` sources stay in `scripts/font-src/` for reproducibility; the subsetted `.woff2` output is **committed** (build never depends on glyphhanger — T-17 is a one-shot asset ticket).
+**[v1.5]** `dist/resume/index.html` is dropped from the script's input list (T-27), leaving `['index.html', 'about/index.html', '404.html']`. The script wraps each page read in `try { … } catch { continue; }`, so a missing input is **silently skipped rather than raising** — which means the real hazard is not a stale path breaking the build, it is a **newly added** page being quietly excluded from glyph subsetting and shipping with missing glyphs. The list is written explicitly (not globbed) precisely so it stays an accurate, auditable description of the pages that exist; adding a page means adding a line in the script.
+
+> **Historical note (T-17 amendment, retained for the audit trail — NOT normative):** the original design specified
+> `npx glyphhanger --whitelist=… --subset=scripts/font-src/IBMPlexSans-{Regular,SemiBold}.ttf --formats=woff2
+> --output=src/assets/fonts <page list>`. During T-17 it was found that `glyphhanger` shells out to Python's
+> `fonttools` + `brotli`, which are not installed on this machine (the owner prefers no Python toolchain).
+> The ticket explicitly sanctioned the `subset-font` alternative, which shipped. See
+> `qa/qa-report-T-17.md` (deviation W-1, finding W-3). The *output* contract — two pinned WOFF2 files,
+> weights 400/600, `font-display: swap` — was never in doubt and is unchanged.
+
+The `.ttf` sources stay in `scripts/font-src/` for reproducibility; the subsetted `.woff2` output is **committed** (the build never runs the subsetter — T-17 is a one-shot asset ticket).
 - **`@font-face`** in `src/assets/styles/global.css` (T-17), `font-display: swap` (content-first, NF-1):
 
 ```css
@@ -599,7 +627,7 @@ const canonical = absoluteUrl(path);
 
 Every page passes its own `title`/`description`/`path`; canonical, sitemap URL, and robots Sitemap line are byte-identical because all three flow from `path()` (R8).
 
-### 8.2 `src/config/person.ts` — the ONE shared facts module (T-13/T-14, facts at T-23)
+### 8.2 `src/config/person.ts` — the ONE shared facts module (T-13, facts at T-23)
 
 ```ts
 import { SITE_URL } from './site';
@@ -625,11 +653,11 @@ export async function getPersonData(): Promise<{
 }
 ```
 
-**Fact flow:** name/url/sameAs come from the registry (home entry + SITE_URL); `jobTitle` is a marked constant here. Home `JsonLdPerson` and Résumé `JsonLdProfilePage` both call this **one** module — no duplicated facts (T-14 requirement).
+**Fact flow:** name/url/sameAs come from the registry (home entry + SITE_URL); `jobTitle` is a marked constant here. Home's `JsonLdPerson` calls this **one** module — no duplicated facts. **[v1.5]** the résumé's second consumer is deleted with the page, so `getPersonData()` now has exactly one caller; it is kept as a module rather than inlined into the component because the *facts* (not the markup) are the thing that must never be duplicated if a future section ever needs `Person` data.
 
-### 8.3 JSON-LD components and placement — RESOLVED
+### 8.3 JSON-LD component and placement — RESOLVED
 
-`JsonLdPerson.astro` and `JsonLdProfilePage.astro` serialize inline `<script type="application/ld+json">` data blocks **at the top of each template's section markup (inside `<body>`/`<main>`)**, not in `<head>`:
+`JsonLdPerson.astro` serializes an inline `<script type="application/ld+json">` data block **at the top of the template's section markup (inside `<body>`/`<main>`)**, not in `<head>`:
 
 ```astro
 ---
@@ -647,9 +675,11 @@ const ld = {
 <script type="application/ld+json" is:inline set:html={JSON.stringify(ld)} />
 ```
 
-`JsonLdProfilePage.astro` emits `{ '@context', '@type': 'ProfilePage', name: `${p.name} — Résumé`, url: absoluteUrl('resume'), mainEntity: { '@type': 'Person', ...same facts... } }`.
+`Person` is the **only** structured-data node on this site (SEO-1, SEO-2 tombstoned by PRD v1.5 OQ-7). There is no `ProfilePage` node and none is to be added: `ProfilePage` describes a container page for a person's identity document, and with no résumé page in the site the type has nothing to describe. `sameAs` carries the two profile URLs that the About/LinkedIn depth path (US-15/US-16) depends on, so the two placeholders T-23 replaces are the same fact in two places — schema frontmatter and `person.ts` both read `home.data.github`/`home.data.linkedin`, so there is a single edit point, not two.
 
 `[DEVIATION from T-13/T-14 wording]`: the tickets say "Home page `<head>` includes …". Putting data blocks in the **body** is deliberate: Google and AI crawlers parse JSON-LD anywhere in the document, and head-placement would force the route file to know per-template metadata, violating REG-6's "zero per-section wiring". The `<script>` blocks are data, **exempt** from the zero-JS scanner (T-20) wherever they appear; `is:inline` guarantees Astro leaves them untouched. This is noted for the T-21 QA pass.
+
+**[v1.5] Removal consequence, and the reason `RES-X4` exists:** when T-26 deletes `JsonLdProfilePage.astro`, `Person` loses the sibling that made an accidental deletion obvious. The guard is therefore explicit in T-28: the built `dist/index.html` must still contain exactly one `application/ld+json` block with `"@type":"Person"`, and **zero** with `"@type":"ProfilePage"`. A dev sweeping imports during T-26 must verify the Person block survived in the same commit — it is the one thing the removal ticket could plausibly break without failing the build.
 
 ---
 
@@ -679,81 +709,83 @@ export default defineConfig({
 ```
 
 - **Output:** `dist/sitemap-index.xml` + `dist/sitemap-0.xml` (integration defaults — `filenameBase: 'sitemap'`). **Confirmation required by design:** `robots.txt`'s `Sitemap: {SITE_URL}/sitemap-index.xml` line must match the built index file name byte-for-byte (`sitemap-index.xml`, never `sitemap.xml` or `sitemap-0.xml`).
-- Sitemap URLs derive from the registry's generated routes (T-7) and are **exactly** `/`, `/resume/`, `/about/` — trailing-slash policy shared with canonical/nav (R8). The integration already skips non-page endpoints (robots.txt) and status pages (404) by default; the explicit `filter` keeps that exclusion visible and future-proof.
+- Sitemap URLs derive from the registry's generated routes (T-7) and are **exactly** `/`, `/about/` — trailing-slash policy shared with canonical/nav (R8). **[v1.5]** was `/`, `/resume/`, `/about/`; the résumé URL disappears automatically the moment its content file is deleted, because the sitemap is a crawl of the generated routes rather than a hand-written list. That is why T-15 needs no edit: the registry-derived design means a scope removal costs one deleted file, not a coordinated config change. The integration already skips non-page endpoints (robots.txt) and status pages (404) by default; the explicit `filter` keeps that exclusion visible and future-proof.
 - `/404.html` also carries `noindex` (§5.3) so a deindexed 404 can never leak into search.
 
 ---
 
 ## 10. Headers & Deploy (normative)
 
-### 10.1 `scripts/gen-headers.mjs` (T-18) — preview-noindex detection RESOLVED
+### 10.1 `scripts/gen-headers.mjs` (T-18, amended T-27) — preview-noindex detection RESOLVED
 
-**Detection: `CF_PAGES_BRANCH`.** Production build ⇔ this env var is absent (local builds) or equals the production branch `main`. Any other set value (PR branch names, preview branches, `preview`) ⇔ non-canonical host ⇔ emit the global noindex rule. `CF_PAGES_URL` is **rejected** as a discriminator: Cloudflare sets it on production deploys too, so its mere presence cannot distinguish preview from prod; branch comparison can. (R2/R10).
+**Detection: `CF_PAGES_BRANCH`.** Production build ⇔ this env var is absent (local builds) or equals the production branch `main`. Any other set value (PR branch names, preview branches, `preview`) ⇔ non-canonical host ⇔ emit the global noindex rule. `CF_PAGES_URL` is **rejected** as a discriminator: Cloudflare sets it on production deploys too, so its mere presence cannot distinguish preview from prod; branch comparison can. (R2/R10). **[v1.5] This detection logic is untouched by the removal** — it is the part of T-18 that survives, and T-27's brief explicitly forbids "improving" it.
 
 ```js
 // scripts/gen-headers.mjs — run AFTER `astro build` (chained in package.json).
+// [v1.5] This script's ONLY job is the preview noindex rule. The former /resume.pdf
+// Cache-Control rule (DEP-7) was cancelled with the PDF (PRD OQ-7) and is deleted here.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const PROD_BRANCH = 'main';             // the Cloudflare Pages production branch
+const PROD_BRANCH = 'main';                 // the Cloudflare Pages production branch
 const branch = process.env.CF_PAGES_BRANCH; // undefined locally = production semantics
 const isProduction = !branch || branch === PROD_BRANCH;
-
-const resumeRule = [
-  '/resume.pdf',
-  '  Cache-Control: public, max-age=60, must-revalidate',
-].join('\n');
 
 const noindexRule = [
   '/*',
   '  X-Robots-Tag: noindex',
 ].join('\n');
 
-const body = isProduction
-  ? `${resumeRule}\n`
-  : `${resumeRule}\n\n${noindexRule}\n`;
-
 mkdirSync(resolve('dist'), { recursive: true });
-writeFileSync(resolve('dist/_headers'), body, 'utf8');
-console.log(`[gen-headers] wrote dist/_headers (${isProduction ? 'production' : `preview noindex (branch=${branch})`})`);
+if (isProduction) {
+  // Nothing to write: a production site must emit no X-Robots-Tag at all.
+  console.log('[gen-headers] production build — no _headers written');
+} else {
+  writeFileSync(resolve('dist/_headers'), `${noindexRule}\n`, 'utf8');
+  console.log(`[gen-headers] wrote dist/_headers (preview noindex, branch=${branch})`);
+}
 ```
 
-Exact `dist/_headers` content — production branch:
+**[v1.5] The production branch writes no file at all.** This is a deliberate behaviour change, not an omission: an empty (or comment-only) `dist/_headers` would still be a deployed artifact, and the original script emitted the PDF rule on production specifically so that *something* was always written. With the PDF gone there is no production-only rule left, so the correct output is **no file**. A dev must therefore not "fix" the missing file by adding a placeholder rule — the absence *is* the correct production state, and T-28's regression check asserts it.
+
+Exact `dist/_headers` content after T-27 — production branch (`main`, or any local build):
 
 ```
-/resume.pdf
-  Cache-Control: public, max-age=60, must-revalidate
+<no file written>
 ```
 
 Preview (`CF_PAGES_BRANCH=preview-x npm run build`):
 
 ```
-/resume.pdf
-  Cache-Control: public, max-age=60, must-revalidate
-
 /*
   X-Robots-Tag: noindex
 ```
 
-Cloudflare applies the most-specific rule per path (`/resume.pdf` wins over `/*` for that file). The `Cache-Control` value is byte-exact per DEP-7. The noindex rule must keep pages **crawlable** (no robots.txt Disallow) so the noindex signal takes effect (SEO-12).
+**[v1.5] Why the "most-specific rule wins" reasoning is gone:** with `/resume.pdf` deleted, there is exactly one rule and no specificity contest. The noindex rule must keep pages **crawlable** (no robots.txt Disallow) so the noindex signal takes effect (SEO-12) — that requirement is unchanged.
 
 ### 10.2 `package.json` build chain (T-1/T-18/T-19/T-20)
 
 ```json
 {
-  "engines": { "node": ">=20" },
+  "engines": { "node": ">=22.12.0" },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build && node scripts/gen-headers.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "verify": "node scripts/verify-static.mjs",
-    "fonts:subset": "npx glyphhanger --whitelist=... --subset=scripts/font-src/IBMPlexSans-Regular.ttf --subset=scripts/font-src/IBMPlexSans-SemiBold.ttf --formats=woff2 --output=src/assets/fonts dist/index.html dist/resume/index.html dist/about/index.html dist/404.html"
+    "fonts:subset": "node scripts/subset-fonts.mjs"
   }
 }
 ```
 
-`npm run build` runs headers generation **after** Astro's build, inside one command — Cloudflare never sees a dist without `_headers`.
+`npm run build` runs headers generation **after** Astro's build, inside one command — Cloudflare never sees a dist without `_headers` (or, on production, without the correct *absence* of one, §10.1). **[v1.5]** the `fonts:subset` script's input list drops `dist/resume/index.html` (T-27), leaving three pages.
+
+> **[v1.5 correction]** This block previously showed a long `npx glyphhanger …` command for `fonts:subset`.
+> That is the pre-amendment form; the shipped `package.json` uses `node scripts/subset-fonts.mjs` (§7). The
+> `engines.node` value was also corrected from `>=20` to the `>=22.12.0` the repo actually declares,
+> closing watch-item (a) from `qa/qa-report-T-1.md` — T-19 must still set `NODE_VERSION=22` on the
+> Cloudflare Pages project.
 
 ### 10.3 Cloudflare Pages deployment (T-19) — dashboard flow, no wrangler file
 
@@ -761,7 +793,7 @@ Cloudflare applies the most-specific rule per path (`/resume.pdf` wins over `/*`
 2. Project env (production): `PUBLIC_SITE_URL=https://mattoconn.pages.dev`. **Never** set it on preview builds (R10); `CF_PAGES_BRANCH` is auto-provided by Cloudflare.
 3. Subdomain `mattoconn.pages.dev` (project name `mattoconn`) — verify availability during T-19; **if unavailable, stop and escalate to the planner** (DEP-5/R1; no silent rename).
 4. Post-T-20 retrofitted gate: Cloudflare build command becomes `npm run build && npm run verify` — zero-JS/zero-third-party/presence checks block bad deploys.
-5. Smoke checks: `curl -sI https://mattoconn.pages.dev/ | head -1` → 200; `curl -sI https://mattoconn.pages.dev/resume.pdf | rg -i 'cache-control|HTTP'` → 200 + `Cache-Control: public, max-age=60, must-revalidate`.
+5. Smoke checks: `curl -sI https://mattoconn.pages.dev/ | head -1` → 200; `curl -sI https://mattoconn.pages.dev/about/ | head -1` → 200. **[v1.5]** the original `/resume.pdf` smoke check is deleted, not merely relaxed: there is no PDF to curl, so a check against that path would return 404 on a correctly-deployed site and train the deployer to ignore 404s there. If `/resume.pdf` is ever probed, a **404 is the pass condition** (T-28 asserts the local equivalent via `test ! -e dist/resume/index.html`).
 
 No `wrangler.toml` and no repo `_headers` (the file is generated into `dist/`; committing one into `public/` would double-apply rules).
 
@@ -783,8 +815,15 @@ Runs over `dist/`, exits non-zero on any failure, prints every violation with fi
    - non-empty `type="application/ld+json"` blocks → **exempt** (data; `is:inline` output on v1 pages).
    - Event-handler attributes anywhere in the document: regex `\s(on[a-z]+)\s*=\s*("|')[^"']*("|')` → **FAIL** (`onclick`, `onload`, `onerror`, …).
 2. **Third-party origin check (NF-4).** Allowed origin = `SITE_ORIGIN` (from `PUBLIC_SITE_URL ?? 'https://mattoconn.pages.dev'`). In HTML attributes (`src`, `srcset`, `href`, `poster`, `action`) and CSS (`url(...)` in any `dist/**/*.css`): any value starting `http://`, `https://`, or protocol-relative `//` whose host ≠ allowed host → **FAIL**. Exception (documented): `href` on `<a>` elements points at GitHub/LinkedIn by feature (HOME-3) — anchors are outbound *links*, not page-load requests; everything load-bearing (stylesheets, images, scripts, fonts, forms) must be same-origin. JSON-LD `sameAs` values reside inside the exempted data blocks and are never fetched.
-3. **Presence asserts (DEP-3, RES-1, SEO-3):** `dist/404.html`, `dist/robots.txt`, `dist/sitemap-index.xml`, `dist/sitemap-0.xml`, `dist/resume/index.html` containing `href="/resume.pdf"`, and `dist/_headers` containing `Cache-Control: public, max-age=60, must-revalidate` (guards T-18 against accidental removal).
-4. Fail-fast plumbing: missing `dist` → FAIL; each rule logs `FAIL <file>: <detail>`; `process.exit(1)` on any failure, `process.exit(0)` + summary otherwise. Plain Node ESM, zero runtime deps.
+3. **Presence asserts (DEP-3, SEO-3):** `dist/404.html`, `dist/robots.txt`, `dist/sitemap-index.xml`, and `dist/sitemap-0.xml` all exist. **[v1.5]** the résumé half of the original rule set is replaced by rule 3b — these two must be added and removed together in T-27, since leaving either behind is exactly the "residue" the PRD forbids.
+4. **No-résidue asserts (RES-X1, RES-X3 — T-27).** The inverse of the old presence asserts, and the site's permanent guard against the retired surface reappearing:
+   - `dist/resume/index.html` does **not** exist; `dist/resume.pdf` does **not** exist.
+   - No file under `dist/**` contains the strings `/resume.pdf`, `"@type":"ProfilePage"`, or a nav/href pointing at `/resume`.
+   - The **only** JSON-LD block in `dist/index.html` is `"@type":"Person"` (guards `RES-X4`: the Person node must survive the sweep).
+   - `dist/_headers` must not contain `resume` on a preview build, and must not exist at all on a production build (§10.1).
+   
+   Rationale for asserting on *strings* and not just files: a partial regression — the file is gone but a nav entry, a canonical, or a leftover `sameAs` still points at `/resume` — produces no missing-file failure, yet ships a broken link to visitors and crawlers. String scanning is what makes the invariant enforceable in CI.
+5. Fail-fast plumbing: missing `dist` → FAIL; each rule logs `FAIL <file>: <detail>`; `process.exit(1)` on any failure, `process.exit(0)` + summary otherwise. Plain Node ESM, zero runtime deps.
 
 ### 11.2 Planted negative-test procedure (T-20 acceptance)
 
@@ -797,12 +836,14 @@ Runs over `dist/`, exits non-zero on any failure, prints every violation with fi
 
 | Layer | What | Where / when |
 |---|---|---|
-| Schema unit | Zod rejects `template: 'bogus'` / `'error'` (T-2 negative test); description >160 fails | T-2, local `npm run build` |
-| Unit (pure fn) | `getSections()` ordering (home→resume→about) + id/slug invariant (T-3 log line or test); `sectionPath` home→`/` | T-3 |
-| Integration (build) | `npm run build` + `npx astro check` clean; four routes rendered with landmarks (T-6 rg); template dispatch to correct `Section` (T-7 `ls dist/`) | Every astro ticket |
-| Static gate | `npm run verify` (JS/third-party/presence) + planted negative tests (§11.2) | T-20, then CI post-T-19 |
-| Headers | `CF_PAGES_BRANCH=preview-x npm run build` → `noindex` in `dist/_headers`; production (no env) → no `noindex` (T-18) | T-18 |
-| QA/E2E | Lighthouse mobile (load <2s), axe a11y, WCAG contrast, 375/390/430px sweep (T-21); extensibility stub test (T-22); PDF text-extraction (`pdftotext public/resume.pdf - | wc -w` > 0) and `curl` cache check (T-24) | T-21/T-22/T-24 |
+| Schema unit | Zod rejects `template: 'bogus'` / `'error'` / `'resume'` (T-2 negative test; the `'resume'` case is a permanent v1.5 guard); description >160 fails | T-2, local `npm run build`; `'resume'` re-checked in T-28 |
+| Unit (pure fn) | `getSections()` ordering (**home→about** — v1.5) + id/slug invariant (T-3 log line or test); `sectionPath` home→`/` | T-3; re-asserted in T-28 |
+| Integration (build) | `npm run build` + `npx astro check` clean; **three** routes rendered with landmarks (T-6 rg); template dispatch to correct `Section` (T-7 `ls dist/`) | Every astro ticket |
+| Static gate | `npm run verify` (JS/third-party/presence/**no-résidue**) + planted negative tests (§11.2) | T-20, amended T-27; CI post-T-19 |
+| Headers | `CF_PAGES_BRANCH=preview-x npm run build` → `noindex` in `dist/_headers`; production (no env) → **no `_headers` file at all** (T-27 behaviour change) | T-18, re-asserted T-28 |
+| QA/E2E | Lighthouse mobile (load <2s), axe a11y, WCAG contrast, 375/390/430px sweep on the **two-route** site (T-21 → T-28); extensibility stub test (T-22) | T-21/T-22, re-run T-28 |
+| **[v1.5] Removal regression** | registry returns exactly `['home','about']`; no `dist/resume/**`; no `resume` string in any built asset; exactly one JSON-LD block and it is `Person`; sitemap lists exactly `/` + `/about/`; production build writes no `_headers` | T-25, T-26, T-27, **T-28** |
+| ~~QA/E2E (cancelled)~~ | ~~PDF text-extraction (`pdftotext public/resume.pdf - \| wc -w` > 0) and `curl` cache check~~ | ~~T-24~~ **CANCELLED** — no PDF is ever produced (PRD OQ-7). Do not reinstate these checks; there is no artifact to verify. |
 
 ---
 
@@ -812,40 +853,58 @@ Runs over `dist/`, exits non-zero on any failure, prints every violation with fi
 
 | File / artifact | Tickets (create → extend) |
 |---|---|
-| `package.json` | T-1 → T-17 (glyphhanger devDep, fonts script), T-18 (build chain), T-20 (verify) |
+| `package.json` | T-1 → T-17 (`subset-font` devDep, `fonts:subset` script), T-18 (build chain), T-20 (verify) |
 | `package-lock.json` | T-1 → T-17 |
 | `tsconfig.json` | T-1 |
-| `astro.config.mjs` | T-1 → T-4 (site), T-15 (sitemap + filter) |
+| `astro.config.mjs` | T-1 → T-4 (site), T-15 (sitemap + filter) → T-26 (**comments only** — scrub `resume.pdf` from the file-endpoint note and `'/resume/'` from the route list; `trailingSlash` and `sitemap.filter` untouched) |
 | `.gitignore` | T-1 |
 | `.env.example` | T-4 |
 | `src/content.config.ts` | T-2 |
 | `src/config/templates.ts` | T-2 (enum + name mapper; the sanctioned extension point per §4.2) |
 | `src/config/sections.ts` | T-3 |
 | `src/config/site.ts` | T-4 |
-| `src/config/person.ts` | T-13 → T-14 (shared facts), T-23 (jobTitle + real URLs) |
+| `src/config/person.ts` | T-13 (shared facts), T-23 (jobTitle + real URLs) → T-26 (**comment only** — drop the `JsonLdProfilePage` second-caller claim) |
 | `src/content/sections/home.md` | T-3 → T-23 (final copy) |
-| `src/content/sections/resume.md` | T-3 |
-| `src/content/sections/about.md` | T-3 → T-23 (final copy) |
+| `src/content/sections/about.md` | T-3 → T-25 (`order: 3 → 2`) → T-23 (final copy) |
 | `src/layouts/BaseLayout.astro` | T-6 → T-12 (head slot wiring) |
 | `src/components/Nav.astro` | T-5 |
-| `src/components/Seo.astro` | T-12 |
+| `src/components/Seo.astro` | T-12 → T-26 (**comment only** — the `'/resume/'` path example becomes `'/about/'`) |
 | `src/components/JsonLdPerson.astro` | T-13 |
-| `src/components/JsonLdProfilePage.astro` | T-14 |
 | `src/pages/[...slug].astro` | T-7 → T-12 (per-route Seo wiring) |
-| `src/pages/404.astro` | T-11 → T-12 (Seo wiring) |
+| `src/pages/404.astro` | T-11 → T-12 (Seo wiring) → T-26 (`.btn-download` → `.btn-primary` rename + comment scrub) |
 | `src/pages/robots.txt.ts` | T-16 |
-| `src/templates/HomeSection.astro` | T-8 → T-13 (JSON-LD include) |
-| `src/templates/ResumeSection.astro` | T-9 → T-14 (JSON-LD include) |
+| `src/templates/HomeSection.astro` | T-8 → T-13 (JSON-LD include) → T-26 (link row trim) |
 | `src/templates/AboutSection.astro` | T-10 |
-| `src/assets/styles/global.css` | T-6 → T-17 (font-face rules) |
+| `src/assets/styles/global.css` | T-6 → T-17 (font-face rules) — **T-26 does NOT touch this file**; the `.btn-*` token is scoped in `404.astro` |
 | `src/assets/fonts/*.woff2` (2 files) | T-17 |
 | `scripts/font-src/*.ttf` (2 files) | T-17 (vendored subsetting inputs) |
-| `scripts/gen-headers.mjs` | T-18 |
-| `scripts/verify-static.mjs` | T-20 |
-| `public/resume.pdf` | T-24 (HUMAN-BLOCKED; absent until then) |
-| `dist/_headers` (generated) | T-18 |
+| `scripts/gen-headers.mjs` | T-18 → T-27 (drop PDF rule; production writes nothing) |
+| `scripts/subset-fonts.mjs` | T-17 → T-27 (input list) |
+| `scripts/verify-static.mjs` | T-20 → T-27 (presence → no-résidue asserts) |
+| `src/config/templates.ts` | T-2 (enum + name mapper) → T-25 (drop `'resume'` from the union **and** the JSDoc examples) |
+| `src/config/sections.ts` | T-3 (unchanged by the removal — read that carefully) |
+| `dist/_headers` (generated) | T-18 → T-27 (preview-only) |
 | `dist/sitemap-index.xml`, `dist/sitemap-0.xml` (generated) | T-15 |
 | `README.md` (optional deploy note) | T-19 (explicitly optional in ticket) |
+
+**Deleted-file ledger (v1.5).** These paths are mapped to their *deleting* ticket so that no file change is undescribed:
+
+| Deleted file | Deleted by | Breaking-change note |
+|---|---|---|
+| `src/content/sections/resume.md` | T-25 | Must be deleted in the same commit as the template below |
+| `src/templates/ResumeSection.astro` | T-25 | Leaving it behind = dead code that still satisfies the glob map; delete it |
+| `src/components/JsonLdProfilePage.astro` | T-26 | `ProfilePage` leaves the site entirely |
+| `public/resume.pdf` | **never existed** (T-24 cancelled before execution) | No `public/` directory exists at all — it was deleted at T-7 |
+
+**Explicit non-change, recorded so no dev "helpfully" edits it:** `src/config/sections.ts`, `src/config/site.ts`, `src/content.config.ts`, `src/pages/[...slug].astro`, `Nav.astro`, and `BaseLayout.astro` need **zero** edits for the removal. That they don't is the design working as intended — the registry absorbed the scope change. `verify-static.mjs` proving the absence is the observable proof.
+
+> **[Plan-review correction] Two files in the non-change list were wrong.** `astro.config.mjs` carries two
+> stale *comments* (line ~13 naming `resume.pdf` as a file endpoint, line ~18 listing the three routes),
+> so **T-26** does edit it — comments only, never the sitemap `filter` or `trailingSlash`. And
+> `src/config/templates.ts` carries a `templateToComponentName` JSDoc example naming `'resume'`, so
+> **T-25** edits that comment. The *behaviour* of both files is genuinely unchanged; only their prose
+> was out of date. Lesson applied: "no code change" and "no text change" are different claims, and a
+> removal ticket that asserts the first does not discharge the second.
 
 ### 12.2 Ticket → design sections it depends on
 
@@ -859,12 +918,12 @@ Runs over `dist/`, exits non-zero on any failure, prints every violation with fi
 | T-6 | §6 (all), §3 |
 | T-7 | §5.1 |
 | T-8 | §6.2–6.4, §4.4 |
-| T-9 | §6.4, §4.4 |
+| T-9 | ~~§6.4, §4.4~~ — **RETIRED** (built under v1.2, deleted by T-25) |
 | T-10 | §6.3, §4.4 |
 | T-11 | §5.3, §6 |
 | T-12 | §8.1, §4.5 |
 | T-13 | §8.2–8.3 |
-| T-14 | §8.2–8.3 |
+| T-14 | ~~§8.2–8.3~~ — **RETIRED** (built under v1.2, deleted by T-26) |
 | T-15 | §9, §4.5 |
 | T-16 | §5.4, §9 |
 | T-17 | §7, §6.1 |
@@ -874,12 +933,23 @@ Runs over `dist/`, exits non-zero on any failure, prints every violation with fi
 | T-21 | §6.2–6.3, §11.3 |
 | T-22 | §4.1–4.2, §5.1 (stub needs `now.md` + `NowSection.astro` only — enum already contains `now`) |
 | T-23 | §4.4 (copy), §8.2 (person.ts facts) |
-| T-24 | §10.3 (curl/cache), §11.3 (pdftotext) |
+| T-24 | **CANCELLED** — no PDF artifact; see §11.3's struck-through row |
+| T-25 | §3 (deleted-file ledger), §4.1–4.2 (enum), §4.4 (order re-point), §5.2 (route table), §6.6 |
+| T-26 | §3 (deleted-file ledger), §6.4 (`.btn-primary` token + link row), §6.6, §8.2–8.3 (single-JSON-LD node + `RES-X4`) |
+| T-27 | §7 (subset input list), §10.1 (headers behaviour), §10.2 (script chain), §11.1 (rule 3b, no-résidue asserts) |
+| T-28 | §5.2, §6.5, §8.3, §9, §10.1, §11.1, §11.3 (the full removal-regression row) |
 
 ### 12.3 Coverage counts
 
-- **33 design-owned files** mapped (30 in-repo source/config/assets/scripts + 2 generated sitemap files + `dist/_headers`), covering **all 24 tickets**. `README.md` is the only optional file (T-19, ticket-labelled optional).
-- Every ticket T-1..T-24 appears as a creator or extender of ≥1 file **and** has a §12.2 mapping — no orphan tickets, no unmapped files.
+**Recomputed 2026-09-26 against the actual repository** (`git ls-files`, excluding `node_modules/`, `dist/`, and `projects/`). The previously published "33 → 31" figures were asserted, never counted, and were wrong; the corrected arithmetic is below.
+
+- **Tracked files in the repo:** 65 total = **37** build/repo files + **28** AI-SDLC artifacts (6 planning documents + 22 QA reports, `T-1`…`T-22`; `T-24` has none because it never ran).
+- **Design-owned files: 37** — the 37 non-`projects/` tracked files above, which is exactly the §12.1 mapping table's row count (37 rows), so **no unmapped files**. Of these, 34 are live in v1.5 and **3 are deleted by the removal chain** (`src/content/sections/resume.md`, `src/templates/ResumeSection.astro`, `src/components/JsonLdProfilePage.astro`).
+- **Post-removal end state: 34** live build/repo files (37 − 3). `public/` never appears in either number: it was deleted at T-7 and no PDF was ever created.
+- **Plus 4 entries in the deleted-file ledger** (§12.1) — 3 real deletions above, plus `public/resume.pdf` which **never existed** and is recorded only so a reader does not go looking for it.
+- **Generated files** are not counted in the 37 (they are build output, not repo files): `sitemap-0.xml`, `sitemap-index.xml`, `dist/_headers`. They are mapped separately in §12.2 as generated rows.
+- **Ticket coverage: all 28 T-IDs** (T-9/T-14 retired, T-24 cancelled, T-25…T-28 new) appear as a creator, extender, or deleter of ≥1 file **and** have a §12.2 mapping — no orphan tickets, no unmapped files. `README.md` is the only optional file (T-19, ticket-labelled optional).
+- **v1.2 → v1.5 delta:** 24 → 28 tickets; the file count moves **37 → 34 live** purely via the 3 removals. There was no `public/resume.pdf` file to remove and no new script file to add — `scripts/subset-fonts.mjs` already shipped at T-17 and only gains a one-line input-list edit at T-27.
 
 ### 12.4 Temporary test artifacts (T-22)
 
@@ -905,17 +975,39 @@ Availability legend: `[catalog]` = present in the agent skill catalog; `[gap]` =
 | T-12 | `astro`, `seo`, `html` | `seo` `[gap]` |
 | T-13, T-14 | `json-ld`, `typescript` | `json-ld` `[gap]`; `[catalog] type-system/boundary disciplines apply` |
 | T-15, T-16 | `astro`, `seo` | `seo` `[gap]` |
-| T-17 | `css`, `font-subsetting` (glyphhanger), `npm` | `font-subsetting` `[gap]` |
+| T-17 | `css`, `font-subsetting` (`subset-font`), `npm` | `font-subsetting` `[gap]` |
 | T-18 | `node`, `ci/cd-cloudflare`, `http-caching` | `[gap]` (recommend adding `node-scripts`, `cloudflare-pages`); `principle-boundary-discipline` applies to env handling |
 | T-19 | `ci/cd-cloudflare`, `devops`, `git` | `[gap]` (recommend `cloudflare-pages`) |
 | T-20 | `node`, `regex/parsing`, `typescript` | `[gap]` for node/regex; `principle-boundary-discipline` `[catalog]` applies to output scanning |
 | T-21 | `lighthouse`, `a11y`, `performance`, `css` | `[gap]` (recommend `lighthouse-audit`, `web-accessibility`) |
 | T-22 | `astro`, `typescript`, `git` | as T-7; `[catalog] type-system discipline` |
 | T-23 | `copywriting-review` (human review of owner copy), `typescript`, `markdown` | `[gap]` — ticket is HUMAN-BLOCKED; owner supplies copy, human reviews; dev only trims wiring |
-| T-24 | `pdf-verification`, `git` | `[gap]` (recommend `pdf-verification`); HUMAN-BLOCKED on owner-provided file |
+| **T-25** | `astro`, `typescript`, `git` (file deletion + enum narrowing) | as T-7/T-2; `[catalog] type-system discipline` applies to removing a union member safely |
+| **T-26** | `astro`, `css`, `json-ld`, `git` (import-sweep surgery) | `json-ld`/`css` `[gap]`; `[catalog] boundary-discipline` applies to the "validate the surviving import" check |
+| **T-27** | `node`, `regex/parsing`, `http-caching` | as T-20; `http-caching` `[gap]` — note the **caching** half of this ticket is cancelled, only the env-branch logic remains |
+| **T-28** | `lighthouse`, `a11y`, `node` (assert orchestration) | as T-21; this is the ticket that most needs `node`/regex skills to grep built output |
+| ~~T-24~~ | ~~`pdf-verification`~~ | **CANCELLED — skill no longer required.** Recorded so the gap list below does not imply a pending need. |
 
-**Catalog-gap summary (explicit):** specialized skills for `astro`, `css`, `a11y`/web accessibility, `seo`, `json-ld`, `node` scripting, `ci/cd-cloudflare`/Cloudflare Pages, `http-caching`, `font-subsetting`, `lighthouse`, `pdf-verification`, and `copywriting-review` do **not** exist in the current skill catalog. The `typescript-best-practices`, `principle-type-system-discipline`, and `principle-boundary-discipline` skills cover the TypeScript/typed-boundary portions. The orchestrator should either add the gap skills or accept default behavior for those tickets.
+**Catalog-gap summary (explicit):** specialized skills for `astro`, `css`, `a11y`/web accessibility, `seo`, `json-ld`, `node` scripting, `ci/cd-cloudflare`/Cloudflare Pages, `http-caching`, `font-subsetting`, `lighthouse`, and `copywriting-review` do **not** exist in the current skill catalog. **[v1.5] `pdf-verification` is removed from this list** (its only consumer, T-24, was cancelled). The `typescript-best-practices`, `principle-type-system-discipline`, and `principle-boundary-discipline` skills cover the TypeScript/typed-boundary portions. The orchestrator should either add the gap skills or accept default behavior for those tickets.
 
 ---
 
-*The six deferred decisions are resolved reproducibly above; the routing shape is a single catch-all route; the file↔ticket mapping is complete with zero unowned required files. A dev sub-agent may implement any single ticket T-1..T-24 from this document plus the ticket file without further architectural decisions.*
+## 14. Removal Execution Order (normative, v1.5)
+
+The removal is four tickets with a hard ordering constraint that is easy to get wrong, so it is stated here normatively rather than left to the ticket graph:
+
+| Step | Ticket | Why it must be here |
+|---|---|---|
+| 1 | **T-25** | Delete `resume.md` **and** `ResumeSection.astro` in the same commit. Deleting the content file alone leaves a glob-map entry with no page; deleting the template alone leaves a registered section that fails the build (§5.1). Neither is a shippable intermediate state. |
+| 2 | **T-26** | Trim the Home link row, delete `JsonLdProfilePage.astro`, rename the CSS token. Depends on T-25 because the Home row references the route T-25 deleted. **Verify `Person` JSON-LD still renders in this same commit** (`RES-X4`) — this is the only step that can silently break surviving functionality. |
+| 3 | **T-27** | Script sweep. Depends on T-25 (the deleted page must be gone before `subset-fonts.mjs`'s input list is corrected) and on T-18/T-20 (both scripts already exist). |
+| 4 | **T-28** | Full regression. Must be last: it is the only ticket whose assertions are meaningful, and running it before T-26/T-27 would pass against a half-removed site. |
+| 5 | **T-19** | First deploy. Depends on T-28, so **the résumé is never deployed to production even once.** This ordering is the whole point of the re-plan. |
+
+**Commit-shape rule:** T-25 and T-26 may be separate commits; T-27 and T-28 may be separate commits. But **T-28 must not be merged, and T-19 must not run, until all four removal tickets are green**, and T-28's report must be attached to the T-19 deploy ticket as evidence that the shipped site has no résumé residue.
+
+**Rollback note:** because nothing résumé-related has been deployed, there is nothing to roll back in production. Reverting a removal commit is a normal code revert; no redirect is needed because no public URL ever pointed at a résumé (R1 in the tickets' risk table).
+
+---
+
+*The six deferred decisions are resolved reproducibly above; the routing shape is a single catch-all route; the file↔ticket mapping is complete with zero unowned required files, and the v1.5 removal is specified as precisely as the original build. A dev sub-agent may implement any single ticket T-1..T-28 from this document plus the ticket file without further architectural decisions.*
