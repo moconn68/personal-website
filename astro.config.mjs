@@ -20,6 +20,10 @@ export default defineConfig({
   // (root is '/'), so nav hrefs, canonicals, and sitemap URLs stay byte-identical.
   // File endpoints (robots.txt, sitemap-*.xml) never take a slash.
   trailingSlash: 'always',
+  // A slug collision (two content entries resolving to the same id) must fail
+  // the build loudly instead of Astro silently dropping one entry — the
+  // content-schema guards in src/config/sections.ts assume this.
+  prerenderConflictBehavior: 'error',
   integrations: [
     sitemap({
       // Sitemap covers exactly the registry-derived section URLs:
