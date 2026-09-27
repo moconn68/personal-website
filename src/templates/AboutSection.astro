@@ -49,11 +49,12 @@ const { Content } = await render(entry);
     line-height: var(--lh-body, 1.6);
   }
 
-  .about-body p {
+  /* <p> tags come from <Content /> and carry no scope attribute: :global(). */
+  .about-body :global(p) {
     margin: 0 0 var(--space-5, 1.5rem);
   }
 
-  .about-body p:last-child {
+  .about-body :global(p:last-child) {
     margin-block-end: 0;
   }
 </style>
