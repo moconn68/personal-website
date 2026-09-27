@@ -8,7 +8,10 @@
 // corresponding registry entry (never a literal path).
 // Identity copy is a HUMAN COPY placeholder until the owner supplies it; the
 // Person JSON-LD block is rendered by JsonLdPerson.astro.
-// Zero client JS: no script tags, no event-handler attributes, no style=.
+// Zero client JS: the only <script> this template renders is the JsonLdPerson
+// data block (type="application/ld+json", exempt from the zero-JS gate per
+// design §11.1 rule 1) — no executable tags, no event-handler attributes, no
+// style= attributes.
 import { render } from 'astro:content';
 import { sectionPath, type SectionEntry } from '../config/sections';
 import JsonLdPerson from '../components/JsonLdPerson.astro';
