@@ -1,5 +1,7 @@
-// THE one shared identity-facts module. Home's JsonLdPerson and Résumé's
-// JsonLdProfilePage BOTH call getPersonData() — no duplicated facts anywhere.
+// THE one shared identity-facts module. Home's JsonLdPerson is its only
+// caller, and the module survives that single caller because the facts — not
+// the markup — are the thing that must never be duplicated if a future
+// section ever needs Person data.
 // name/url/sameAs derive from the registry home entry + SITE_URL; jobTitle is a
 // marked HUMAN COPY constant (owner-supplied; never invented).
 import { SITE_URL } from './site';

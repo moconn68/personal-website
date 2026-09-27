@@ -4,8 +4,8 @@
 // above the fold on a 375px viewport, a condensed muted proof line from
 // `data.description`, and a hunt-free link row. Every fact and every section
 // link is read from the registry — GitHub/LinkedIn come from the typed
-// `github`/`linkedin` frontmatter, Résumé/About from `sectionPath()` of the
-// corresponding registry entries (never a literal `/resume` path).
+// `github`/`linkedin` frontmatter, About from `sectionPath()` of the
+// corresponding registry entry (never a literal path).
 // Identity copy is a HUMAN COPY placeholder until the owner supplies it; the
 // Person JSON-LD block is rendered by JsonLdPerson.astro.
 // Zero client JS: no script tags, no event-handler attributes, no style=.
@@ -23,12 +23,12 @@ const { Content } = await render(entry);
 
 const github = entry.data.github;
 const linkedin = entry.data.linkedin;
-const resumeEntry = sections.find((s) => s.data.slug === 'resume');
 const aboutEntry = sections.find((s) => s.data.slug === 'about');
 
-// Registry-derived internal links — the home scan page surfaces these two
-// sections prominently; unregistering one removes its link.
-const registryLinks = [resumeEntry, aboutEntry]
+// Registry-derived internal link — the home scan page surfaces the About
+// section prominently; unregistering it drops the link rather than leaving a
+// hardcoded path behind.
+const registryLinks = [aboutEntry]
   .filter((s): s is SectionEntry => Boolean(s))
   .map((s) => ({ href: sectionPath(s), label: s.data.navLabel }));
 ---

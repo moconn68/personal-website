@@ -101,4 +101,5 @@ Appended by the `orchestrator` as it ships each ticket. The `commit` column stor
 | project | T-ID | date | commit | notes |
 |---|---|---|---|---|
 | initial-site | | | | |
+| initial-site | T-26 | 2026-09-26 | T-26 | Removal chain step 2 of 4. Home link row trimmed to GitHub/LinkedIn/About; `JsonLdProfilePage.astro` deleted; `.btn-download` → `.btn-primary` on the 404; vestigial résumé comments scrubbed from `person.ts`, `Seo.astro`, `404.astro`, `astro.config.mjs`. `RES-X4` guard verified: `Person` JSON-LD still renders, parses, and carries `name`/`jobTitle`/`sameAs`; zero `ProfilePage` in `dist/`. Review Approve, QA Pass (2 attempts). `scripts/**` untouched by design — T-27 owns the PDF cache rule and the résumé asserts, so `npm run verify` has 1 expected violation at this rank. |
 

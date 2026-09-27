@@ -1,8 +1,8 @@
 ---
 // Custom 404 page. A fixed page — NOT a registry section, no error-template
 // dispatch (the template enum has no `error` value). Decorative "404" is
-// aria-hidden (not read by screen readers) above the h1; single primary action
-// reuses the `.btn-download` token to go home. Ships
+// aria-hidden (not read by screen readers) above the h1; the single primary
+// action defines the `.btn-primary` token to go home. Ships
 // `<meta name="robots" content="noindex">` (excluded from the sitemap via the
 // sitemap filter). Title/description here are self-contained. Zero client JS.
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -27,7 +27,7 @@ if (!home) {
     <h1>Page not found</h1>
     <p class="notfound-message">The page you're looking for doesn't exist.</p>
     <p class="notfound-action">
-      <a class="btn-download" href={sectionPath(home)}>Back to home</a>
+      <a class="btn-primary" href={sectionPath(home)}>Back to home</a>
     </p>
   </section>
 </BaseLayout>
@@ -74,9 +74,9 @@ if (!home) {
     margin-block-start: var(--space-3, 0.75rem);
   }
 
-  /* .btn-download token, duplicated from ResumeSection —
-     Astro scoped styles are per-component, so each owner defines it. */
-  .btn-download {
+  /* .btn-primary token — Astro scoped styles are per-component, so this
+     page owns the only definition of it. */
+  .btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -92,14 +92,14 @@ if (!home) {
     text-decoration: none;
   }
 
-  .btn-download:hover {
+  .btn-primary:hover {
     background: var(--color-accent-hover, #172554);
     border-color: var(--color-accent-hover, #172554);
   }
 
   /* Visible focus ring for keyboard and pointer input; never outline: none. */
-  .btn-download:focus,
-  .btn-download:focus-visible {
+  .btn-primary:focus,
+  .btn-primary:focus-visible {
     outline: 2px solid var(--color-accent, #1e40af);
     outline-offset: 2px;
   }
