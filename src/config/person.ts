@@ -3,14 +3,13 @@
 // the markup — are the thing that must never be duplicated if a future
 // section ever needs Person data.
 // name/url/sameAs derive from the registry home entry + SITE_URL; jobTitle is a
-// marked HUMAN COPY constant (owner-supplied; never invented).
+// typed constant (owner-supplied; never invented).
 import { SITE_URL } from './site';
 import { getSections } from './sections';
 
-// HUMAN COPY — job title. Deliberately a typed constant, not a content field:
-// the registry schema stays minimal (slug/title/navLabel/order/template/description
-// + URL links). Replace with the owner's real job title.
-const JOB_TITLE: string = 'HUMAN COPY — job title';
+// Deliberately a typed constant, not a content field: the registry schema
+// stays minimal (slug/title/navLabel/order/template/description + URL links).
+const JOB_TITLE: string = 'Software Engineer';
 
 export interface PersonData {
   name: string;

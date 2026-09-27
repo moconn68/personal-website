@@ -71,7 +71,7 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
 - [x] **T-21: Lighthouse + accessibility + mobile QA pass** — mobile-preset Lighthouse (load <2s over throttled network), WCAG AA/a11y audit, 375–430px manual sweep on all pages. (US-3 | deps: T-8, T-9, T-10, T-11, T-12, T-17 | M | qa/)
 - [x] **T-22: Extensibility manual verification (stub "Now" section)** — register a stub section and prove it appears in nav + sitemap with zero nav/layout/sitemap code changes, then revert. (US-9 | deps: T-3, T-5, T-7, T-15 | S | qa/)
 - [x] **T-24: ~~Owner PDF commit + verification~~ — CANCELLED (PRD v1.5, OQ-7)** — never executed; no PDF was ever committed, so there is no file to verify and the cache-header obligation (`DEP-7`) it carried is stripped by T-27 instead. Retained as a tombstone so the T-ID is never reused. (RES-2 | deps: none | S | content/)
-- [ ] **T-23: Author final Home/About copy + identity facts (owner-provided, HUMAN-BLOCKED)** — replace all placeholders with the owner's supplied copy: hero, proof line, GitHub/LinkedIn URLs, About paragraphs, JSON-LD facts. (US-1, US-8, US-13, US-15 | deps: T-8, T-10, T-13 | M | content/)
+- [x] **T-23: Author final Home/About copy + identity facts (owner-provided, HUMAN-BLOCKED)** — replace all placeholders with the owner's supplied copy: hero, proof line, GitHub/LinkedIn URLs, About paragraphs, JSON-LD facts. (US-1, US-8, US-13, US-15 | deps: T-8, T-10, T-13 | M | content/)
 
 ---
 

@@ -12,7 +12,7 @@ const sections = defineCollection({
     order: z.number().int().positive(),
     template: z.enum(TEMPLATES),
     description: z.string().min(1).max(160), // doubles as meta description; ≤160 is enforced at the boundary
-    github: z.string().url().optional(), // home-only; placeholder URL pattern until the owner supplies the real one
+    github: z.string().url().optional(), // home-only
     linkedin: z.string().url().optional(), // home-only
   }),
 });

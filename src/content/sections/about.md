@@ -4,13 +4,11 @@ title: About
 navLabel: About
 order: 2
 template: about
-description: "HUMAN COPY — one-line teaser of the About page (≤160 chars)."
+description: "Bay Area software engineer building systems for consumer devices; outside work, gym, gaming, and travel."
 ---
 
-**HUMAN COPY — paragraph 1.** First-person intro.
+I'm Matthew O'Connell, a software engineer based in the Bay Area, California. For over six years I've built software for consumer devices, from smart speakers to streaming platforms. My work lives close to the operating system: middleware and system services that millions of people rely on without ever noticing. That's the goal.
 
-**HUMAN COPY — paragraph 2.** More story.
+I studied computer engineering at Villanova and started my career building software for a smart speaker used by millions of households. I've worked on core middleware, led a migration that let UI changes ship without device updates, and helped build the next generation of a major streaming device platform. One highlight was rewriting a core device service from Java to Rust, cutting its memory use by more than 10x. Rust is my favorite language, and I've spent real effort helping other teams adopt it. I care about software that is fast, reliable, and easy to maintain.
 
-**HUMAN COPY — paragraph 3.** Hobby thread.
-
-**HUMAN COPY — paragraph 4.** Optional closing.
+Outside work, I'm probably at the gym, deep in a Fortnite match I swore I'd quit years ago, or tearing through a good book (I'm particularly fond of King). I travel when I can; recent trips include Japan, Portugal, Spain, Taiwan, and Costa Rica. Most of my time outside of that goes to my fiancee and our two dogs. I also like picking up new hobbies now and then; dodgeball and rock climbing are the latest pursuits I'm trying out.

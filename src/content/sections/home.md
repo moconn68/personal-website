@@ -4,11 +4,11 @@ title: "Matthew O'Connell"
 navLabel: Home
 order: 1
 template: home
-description: "HUMAN COPY — condensed proof line (years of experience, kind of work). ≤160 chars."
-github: "https://github.com/"        # HUMAN COPY — GitHub profile URL
-linkedin: "https://www.linkedin.com/" # HUMAN COPY — LinkedIn profile URL
+description: "Software engineer with 6+ years building Rust middleware and device software used by millions of people daily."
+github: "https://github.com/moconn68"
+linkedin: "https://www.linkedin.com/in/matthew-o-connell-652178130"
 ---
 
-**HUMAN COPY — role-in-domain.** One line naming the role and domain.
+**Software Engineer building systems software for consumer devices**
 
-**HUMAN COPY — primary stack.** One line naming the primary stack.
+Rust, TypeScript, Java, and Kotlin
