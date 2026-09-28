@@ -29,15 +29,18 @@
 //      a bare anchor fragment all pass silently. A relative href with no leading
 //      slash is out of design scope and is not caught. Rule 4 also guards that
 //      the removal did not collaterally take the site's only structured data
-//      (the Person node) with it.
+//      (the Person node) with it. Rule 4e additionally asserts that
+//      dist/_headers carries a host-matched noindex rule for every
+//      non-canonical host — see §10.1 of the tech design.
 //
 // Ordering: `npm run build` chains this script as its last step, so a build
 // always verifies in the environment it was built in. A standalone
-// `npm run verify` assumes the same: a CF_PAGES_BRANCH-prefixed (preview) build
-// leaves dist/_headers on disk, so re-run a plain `npm run build` before
-// verifying if you built with that variable set.
+// `npm run verify` assumes the same: run `npm run build` first if dist/ is
+// stale. dist/_headers is now identical on every build (no branch or env
+// detection), so there is no preview-vs-production distinction to worry about.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { hostPatternMatches, noindexHeadersFor } from './noindex-rule.mjs';
 
 const DIR = resolve('dist');
 
@@ -402,33 +405,36 @@ if (home === null) {
   }
 }
 
-// 4e. Two complementary checks on dist/_headers:
-//   - Content, whenever the file exists, on any branch: it must be byte-exactly
-//     the preview noindex rule (design §10.1). Deliberately branch-independent.
-//     If the production branch were ever anything but PROD_BRANCH, gen-headers
-//     would misclassify a production build as preview and ship
-//     X-Robots-Tag: noindex to the canonical host — a live SEO outage — and the
-//     branch-aware check below would quietly stop asserting anything while still
-//     printing PASS. This one needs no env var, so it still holds.
-//   - Absence, on a production build only: nothing should be written at all,
-//     and a file left behind by an earlier preview build is dead configuration
-//     (RES-X3). Branch-aware so a preview deploy's gate is not broken by it.
-const NOINDEX_RULE = '/*\n  X-Robots-Tag: noindex\n';
-const PROD_BRANCH = 'main'; // must match scripts/gen-headers.mjs — change one only with the other
+// 4e. dist/_headers must carry the host-matched noindex rule for the
+//     canonical host on every build (design §10.1) — no branch or env
+//     detection, so the same two checks apply on production, preview, and
+//     local builds alike:
+//   - Presence + exact content: the file must exist and equal
+//     noindexHeadersFor(SITE_ORIGIN) byte-for-byte.
+//   - No rule can reach the canonical host: independent of the writer, so a
+//     future edit to noindexHeadersFor that would noindex the real site fails
+//     the build rather than shipping an SEO outage.
 const headersPath = join(DIR, '_headers');
 
-if (exists(headersPath)) {
+if (!exists(headersPath)) {
+  fail('dist/_headers: missing — non-canonical hosts would be indexable (SEO-12)');
+} else {
   const written = readText(headersPath);
-  if (written !== null && written !== NOINDEX_RULE) {
-    fail(`dist/_headers: not the preview noindex rule (${JSON.stringify(written)})`);
+  const expected = noindexHeadersFor(SITE_ORIGIN);
+  if (written !== expected) {
+    fail(`dist/_headers: expected ${JSON.stringify(expected)}, got ${JSON.stringify(written)}`);
   }
-}
-
-if (!process.env.CF_PAGES_BRANCH || process.env.CF_PAGES_BRANCH === PROD_BRANCH) {
-  if (exists(headersPath)) {
-    fail('dist/_headers: present on a production build — production must emit no _headers at all');
-  } else {
-    pass('dist/_headers: absent on this production build');
+  // Independent of the writer: no rule may be able to reach the canonical host.
+  const canonicalHost = new URL(SITE_ORIGIN).host;
+  for (const line of (written ?? '').split('\n')) {
+    if (line.trim() === '' || /^\s/.test(line) || line.startsWith('#')) continue; // header lines, blanks, comments
+    if (!line.startsWith('https://')) {
+      fail(`dist/_headers: rule "${line}" is not host-matched, so it also applies to ${canonicalHost}`);
+      continue;
+    }
+    if (hostPatternMatches(line.slice('https://'.length).split('/')[0], canonicalHost)) {
+      fail(`dist/_headers: rule "${line}" matches the canonical host ${canonicalHost}`);
+    }
   }
 }
 

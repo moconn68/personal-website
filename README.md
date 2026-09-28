@@ -16,7 +16,7 @@ Requires Node `>=22.12.0` (pinned in `.node-version`).
 | Command | What it does |
 | :-- | :-- |
 | `npm run dev` | Starts the Astro dev server at `localhost:4321`. |
-| `npm run build` | Runs `astro build` into `dist/`, then `scripts/gen-headers.mjs` to emit (or remove) the Cloudflare `dist/_headers` file. |
+| `npm run build` | Runs `astro build` into `dist/`, then `scripts/gen-headers.mjs` to write `dist/_headers` with a host-matched `X-Robots-Tag: noindex` rule for every non-canonical host. |
 | `npm run preview` | Serves the built `dist/` locally. |
 | `npm run check` | Type-checks `.astro` and `.ts` files with `astro check`. |
 | `npm run verify` | Static regression gate over `dist/` (`scripts/verify-static.mjs`). Fails on functional JavaScript, third-party asset origins, missing required outputs (`404.html`, `robots.txt`, sitemaps), or residue of retired routes. Run it after `npm run build`. |
@@ -27,4 +27,4 @@ Requires Node `>=22.12.0` (pinned in `.node-version`).
 See `.env.example` for details.
 
 - **`PUBLIC_SITE_URL`** overrides the canonical host (default `https://www.mattoconn.workers.dev`). It drives every absolute URL: canonical links, sitemap, `robots.txt` sitemap line, JSON-LD, and the allowed origin in `npm run verify`. Set it only to build against a different domain.
-- **`CF_PAGES_BRANCH`** is set automatically by Cloudflare Pages. `gen-headers.mjs` treats unset or `main` as production and writes no `_headers`; any other branch gets a site-wide `X-Robots-Tag: noindex` so preview deploys stay out of search results. Simulate a preview locally with `CF_PAGES_BRANCH=preview-x npm run build`, then rebuild without it before running `npm run verify`.
+- `gen-headers.mjs` writes `dist/_headers` with a host-matched `X-Robots-Tag: noindex` rule derived from the canonical host in `dist/robots.txt` — no environment variable is involved, and the output is identical on every build (production, preview, or local).
