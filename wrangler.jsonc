@@ -16,5 +16,9 @@
     // Default, stated explicitly: /about -> /about/ redirect, matching
     // trailingSlash: 'always' and build.format: 'directory' (R8).
     "html_handling": "auto-trailing-slash"
-  }
+  },
+  // Required for `npx wrangler preview`, the non-production deploy command
+  // Workers Builds runs (tech design §10.3 step 4). Wrangler refuses to run
+  // that command without this block even though it needs no settings here.
+  "previews": {}
 }
