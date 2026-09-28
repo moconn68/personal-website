@@ -26,5 +26,5 @@ Requires Node `>=22.12.0` (pinned in `.node-version`).
 
 See `.env.example` for details.
 
-- **`PUBLIC_SITE_URL`** overrides the canonical host (default `https://mattoconn.pages.dev`). It drives every absolute URL: canonical links, sitemap, `robots.txt` sitemap line, JSON-LD, and the allowed origin in `npm run verify`. Set it only to build against a different domain.
+- **`PUBLIC_SITE_URL`** overrides the canonical host (default `https://www.mattoconn.workers.dev`). It drives every absolute URL: canonical links, sitemap, `robots.txt` sitemap line, JSON-LD, and the allowed origin in `npm run verify`. Set it only to build against a different domain.
 - **`CF_PAGES_BRANCH`** is set automatically by Cloudflare Pages. `gen-headers.mjs` treats unset or `main` as production and writes no `_headers`; any other branch gets a site-wide `X-Robots-Tag: noindex` so preview deploys stay out of search results. Simulate a preview locally with `CF_PAGES_BRANCH=preview-x npm run build`, then rebuild without it before running `npm run verify`.

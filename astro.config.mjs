@@ -8,7 +8,7 @@ import { loadEnv } from 'vite';
 // mixed-host build). loadEnv reads .env files the same way Vite does, with
 // real process.env values taking precedence.
 const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
-const SITE_URL = (env.PUBLIC_SITE_URL || 'https://mattoconn.pages.dev').replace(/\/+$/, '');
+const SITE_URL = (env.PUBLIC_SITE_URL || 'https://www.mattoconn.workers.dev').replace(/\/+$/, '');
 
 // https://astro.build/config
 export default defineConfig({
