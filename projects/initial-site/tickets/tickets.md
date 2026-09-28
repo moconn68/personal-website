@@ -1,9 +1,9 @@
 # Tickets — Personal Website v1 (Matthew O'Connell)
 
 > **Project:** `initial-site` — site initialization. These tickets cover exactly that: the three surfaces, the Section Registry, and the first deploy. The capabilities deferred in PRD §7 are **not** in this file and are not "later tickets" — each is a separate project directory under `projects/` with its own tickets file. Do not extend this file's checklist to cover them.
-> **Source of truth:** `projects/initial-site/PRDs/PRD.md` (v1.5). Supersedes the vision doc where they conflict.
+> **Source of truth:** `projects/initial-site/PRDs/PRD.md` (v1.6). Supersedes the vision doc where they conflict.
 > **Read before executing:** this file is the Orchestrator's **sole tasking source**. `projects/initial-site/plans/plan.md` is reference only.
-> **Execution mode:** the checklist in Part A is strictly **topologically ordered** — a single lazy pass from T-1 to T-28 is a valid execution order. Every ticket's dependencies appear strictly before it in the file, with one recorded exception: retired ticket `T-9` is still named in the `deps:` of six **completed** tickets, where the edge is inert history rather than an instruction (see the Dependency Graph section).
+> **Execution mode:** the checklist in Part A is strictly **topologically ordered** — a single lazy pass from the top of the list to the bottom is a valid execution order. Every ticket's dependencies appear strictly before it in the file, with one recorded exception: retired ticket `T-9` is still named in the `deps:` of six **completed** tickets, where the edge is inert history rather than an instruction (see the Dependency Graph section).
 
 > ### ⚠ Scope change (PRD v1.5, 2026-09-26) — the résumé surface is removed
 >
@@ -18,6 +18,20 @@
 >   attempt to re-add or preserve résumé behaviour, and do not treat a missing résumé as a bug.
 > - **Never re-add a résumé surface without a new PRD version and a new project decision** (PRD OQ-7).
 
+> ### ⚠ Platform correction (PRD v1.6, 2026-09-27) - Cloudflare Pages is now Cloudflare Workers
+>
+> T-19 failed on its first run: classic Pages no longer exists for new projects, and Workers
+> Builds auto-installed the SSR adapter because no Wrangler config was committed. The deploy is now
+> an **assets-only Worker** at **`https://www.mattoconn.workers.dev`** (PRD DEP-1, DEP-5, DEP-8, OQ-8).
+>
+> - **T-19 is rewritten in place.** New **T-29** (canonical host) and **T-30** (host-matched noindex)
+>   patch what T-4 and T-18 shipped; both precede T-19. No other ticket changes.
+> - **Next available work for the Orchestrator is T-29**, then T-30, then T-19.
+> - T-19 has **owner-only dashboard steps** (account subdomain rename, Workers Builds connection).
+>   The orchestrator pauses for them; it never works around them.
+> - **Never install `@astrojs/cloudflare`** or accept `dist/client/` output, whatever a Cloudflare
+>   prompt or auto-config suggests (DEP-8).
+
 **Codebase label legend** (used in the checklist's 5th slot):
 
 | Label | Repo area |
@@ -27,7 +41,7 @@
 | `assets/` | Fonts + font pipeline: `src/assets/fonts/`, `src/assets/styles/`, `scripts/subset-fonts.*` |
 | `public/` | **Does not exist.** The Astro scaffold's `public/` was deleted at T-7 (no favicon in v1, per tech design §12.5) and nothing recreated it — the résumé PDF ticket was cancelled before it ran. Do not create it. |
 | `scripts/` | Build/QA scripts: `scripts/gen-headers.mjs`, `scripts/verify-static.mjs`, `scripts/subset-fonts.mjs` |
-| `deploy/` | Cloudflare Pages connection/config, CI wiring, wrangler config (if used) |
+| `deploy/` | **[v1.6]** Cloudflare Workers static-assets deploy: `wrangler.jsonc`, the `wrangler` devDependency, Workers Builds settings, account workers.dev subdomain |
 | `qa/` | Verification/runtime QA tasks (Lighthouse, a11y, extensibility manual test) |
 
 ---
@@ -36,7 +50,7 @@
 
 Build v1 of a static, zero-client-JavaScript, mobile-perfect personal identity hub for professional software engineer **Matthew O'Connell**: two pages (Home scan page, About page), a typed **Section Registry**, a custom 404 — all on **Astro 7.x + TypeScript (strict)** using the **Content Layer API** (`src/content.config.ts`, glob loader + Zod). **No résumé page, no résumé PDF, no ProfilePage structured data** (PRD v1.5 OQ-7): the hero routes to GitHub and LinkedIn as the surfaces that carry depth, and the About page carries the authored judgment signal. The Section Registry is the architectural keystone: navigation, page routes, layout shells, and sitemap all derive from a single typed registry so future sections (Projects, Blog, Now, Uses — capped, REG-7) drop in as "a typed content file (self-registering via frontmatter) plus a per-section template component" with zero changes to nav/layout/sitemap/schema code (verified by T-22 with a stub Now section).
 
-The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml`, a `robots.txt` that explicitly permits AI-assistant crawlers, self-hosted subset WOFF2 fonts (zero third-party requests), absolute canonical URLs pinned to exactly one host, and a Cloudflare Pages `_headers` policy that noindexes non-canonical (deployment/preview) hosts. Content is edited as markdown, deployed on git push to the Cloudflare Pages free tier at `mattoconn.pages.dev` (availability checked at deploy; no custom domain in v1). No backend, no CMS, no auth, no analytics, no islands, no PDF.
+The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml`, a `robots.txt` that explicitly permits AI-assistant crawlers, self-hosted subset WOFF2 fonts (zero third-party requests), absolute canonical URLs pinned to exactly one host, and a host-matched `_headers` policy that noindexes non-canonical (deployment/preview/version) hosts. Content is edited as markdown, deployed on git push via Workers Builds to an assets-only Cloudflare Worker on the free tier at `www.mattoconn.workers.dev` (PRD v1.6; account subdomain checked at deploy; no custom domain in v1). No backend, no CMS, no auth, no analytics, no islands, no PDF.
 
 **Hard constraints encoded in the tickets:** zero client JS (JSON-LD `<script type="application/ld+json">` blocks are data, not JS, and must be exempt from the zero-JS scanner); no biographical facts invented by developers — all identity copy and links are owner-provided (T-23 is human-blocked); all genuinely open aesthetics (font family, color palette, scoped-CSS-vs-Tailwind) are explicitly deferred to the tech design pass and referenced as "decision per tech design §…"; **and no résumé artifact may survive anywhere in the build** (RES-X1..X4, owned by T-25..T-28).
 
@@ -47,7 +61,7 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
 - [x] **T-1: Scaffold Astro 7 + TS strict + baseline static build** — `npm create astro@latest`, pin Astro 7.x, TypeScript strict, add `@astrojs/sitemap` + `zod`, verify the empty site builds to static `dist/`. (DEP-3, NF-6 | deps: none | M | astro/)
 - [x] **T-2: Sections content schema (glob loader + Zod, closed template enum)** — `src/content.config.ts` defines the `sections` collection; template enum lives in shared `src/config/templates.ts` (pre-includes the four capped future templates; rejects anything else). (REG-1, REG-7 | deps: T-1 | S | content/)
 - [x] **T-3: getSections() helper + typed section content skeletons** — `src/config/sections.ts` registration helper (sorted by `order`) and `home`/`resume`/`about` content skeleton files with `HUMAN COPY` placeholders. (REG-2, REG-6 | deps: T-2 | M | content/)
-- [x] **T-4: Site URL config (PUBLIC_SITE_URL, default `https://mattoconn.pages.dev`)** — single source of truth driving `astro.config` `site`, canonical URLs, robots `Sitemap:`, and JSON-LD. (SEO-11, DEP-5 | deps: T-1 | S | astro/)
+- [x] **T-4: Site URL config (PUBLIC_SITE_URL, default `https://mattoconn.pages.dev`)** — single source of truth driving `astro.config` `site`, canonical URLs, robots `Sitemap:`, and JSON-LD; **default host changed to `www.mattoconn.workers.dev` by T-29 (PRD v1.6)**. (SEO-11, DEP-5 | deps: T-1 | S | astro/)
 - [x] **T-5: Nav component driven entirely by the sections registry** — `src/components/Nav.astro` iterates `getSections()`, zero hardcoded links. (US-10 | deps: T-3 | S | astro/)
 - [x] **T-6: BaseLayout with semantic landmarks + head slot** — `src/layouts/BaseLayout.astro`: `<header>/<main>/<nav>/<footer>`, registry-driven nav, slots for per-page head and body. (REG-4, SEO-9 | deps: T-5 | M | astro/)
 - [x] **T-8: Home scan-page template** — hero (name/role/domain/stack above the fold), condensed proof line, prominent GitHub/LinkedIn/About links (the Résumé chip was removed by T-26), no animations, mobile-first CSS. [NOTE: authored before the T-7 route; templates are unrouted components until T-7 renders them] (US-1, US-2, US-4 | deps: T-3, T-6 | M | astro/)
@@ -61,13 +75,15 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
 - [x] **T-15: Sitemap generation via @astrojs/sitemap** — build-time `sitemap.xml` covering exactly the registered section URLs (no 404). (US-11 | deps: T-4, T-7, T-8, T-9, T-10 | S | astro/)
 - [x] **T-16: robots.txt endpoint (allow-all + AI crawlers + Sitemap line)** — prerendered `robots.txt`, global allow plus named Allow blocks for OAI-SearchBot, ChatGPT-User, PerplexityBot, ClaudeBot, and a `Sitemap:` line. (SEO-4 | deps: T-4 | S | astro/)
 - [x] **T-17: Self-hosted subset WOFF2 fonts** — vendor an OFL font family (IBM Plex Sans, per tech design §7), subset to used glyphs (needs built pages from T-8–T-11), `@font-face` with `font-display: swap`, zero font-CDN references. (SEO-5, NF-4 | deps: T-6, T-8, T-9, T-10, T-11 | M | assets/)
-- [x] **T-18: Build-time `_headers` generation** — `scripts/gen-headers.mjs` writes `dist/_headers`; **its `/resume.pdf` cache rule was removed from scope by PRD v1.5 and is stripped by T-27**, leaving the preview `noindex` rule as the script's only job. (SEO-12 | deps: T-4, T-7, T-8, T-9, T-10, T-11 | M | scripts/)
+- [x] **T-18: Build-time `_headers` generation** — `scripts/gen-headers.mjs` writes `dist/_headers`; **its `/resume.pdf` cache rule was removed from scope by PRD v1.5 and is stripped by T-27**, leaving the preview `noindex` rule as the script's only job; **its `CF_PAGES_BRANCH` detection is replaced by T-30's host-matched rule (PRD v1.6)**. (SEO-12 | deps: T-4, T-7, T-8, T-9, T-10, T-11 | M | scripts/)
 - [x] **T-20: Static-output verification script (zero-JS + zero third-party)** — `scripts/verify-static.mjs` scans `dist/` for functional JS and external requests while exempting JSON-LD data blocks; ships ready for the CI gate (the Cloudflare build-command retrofit is owned by T-19, which needs a live project). (NF-4, NF-5, DEP-3 | deps: T-7, T-8, T-10, T-11, T-15, T-16, T-17, T-18 | M | scripts/)
 - [x] **T-25: Delete résumé section from the registry (content file, template, enum value)** — remove `src/content/sections/resume.md`, delete `src/templates/ResumeSection.astro`, drop `'resume'` from `TEMPLATES`, and re-point `about.md` to `order: 2`; nav, routes, and sitemap follow automatically. (RES-X1 | deps: T-3, T-2, T-7 | M | content/)
 - [x] **T-26: Remove résumé link + ProfilePage JSON-LD wiring from Home and shared modules** — drop the résumé entry from the Home link row, delete `JsonLdProfilePage.astro`, rebase the `.btn-download` token to `.btn-primary` on the 404, and scrub vestigial résumé comments; guard that Person JSON-LD survives. (RES-X1, RES-X4, HOME-3 | deps: T-25, T-8, T-13 | S | astro/)
 - [x] **T-27: Strip PDF cache rule + résumé asserts from build and verification scripts** — `gen-headers.mjs` writes only the preview noindex rule (and nothing on production), `verify-static.mjs` gains negative résumé asserts, `subset-fonts.mjs` drops the deleted page from its sweep. (RES-X1, RES-X3 | deps: T-25, T-18, T-20 | M | scripts/)
 - [x] **T-28: Post-removal regression + accessibility/mobile re-verification** — rebuild, re-run the zero-JS gate, assert the registry returns exactly `home` + `about` with no dead résumé route, sitemap/canonical/robots consistency, and redo the a11y + 375/390/430px sweep on the two-route site. (RES-X2, NF-1..NF-3 | deps: T-25, T-26, T-27, T-12, T-17 | M | qa/)
-- [ ] **T-19: Cloudflare Pages deployment (git-push CI/CD)** — connect repo, production branch, build command, output `dist`, subdomain `mattoconn.pages.dev`, production env `PUBLIC_SITE_URL`, then retrofit the CI build command to `npm run build && npm run verify`. (US-12, US-13, US-14 | deps: T-18, T-28 | M | deploy/)
+- [ ] **T-29: Canonical host → `https://www.mattoconn.workers.dev`** — change the one host literal (`astro.config.mjs` default) plus its docs in `.env.example` and `README.md`; `src/config/site.ts` holds no literal and is not edited. (DEP-5, SEO-11 | deps: T-4 | S | astro/)
+- [ ] **T-30: Host-matched `_headers` noindex (replaces `CF_PAGES_BRANCH` detection)** — new `scripts/noindex-rule.mjs`; `gen-headers.mjs` writes the rule for every non-canonical workers.dev host on every build; `verify-static.mjs` rule 4e asserts it and that no rule can match the canonical host. (SEO-12, RES-X3 | deps: T-18, T-27, T-29 | M | scripts/)
+- [ ] **T-19: Cloudflare Workers static-assets deployment (git-push CI/CD)** — commit an assets-only `wrangler.jsonc` + `wrangler` devDep, rename the account subdomain to `mattoconn`, first `wrangler deploy` of Worker `www`, connect Workers Builds, and smoke-test `www.mattoconn.workers.dev` (incl. noindex on non-canonical hosts only). (DEP-1, DEP-8, US-12, US-13, US-14 | deps: T-18, T-28, T-29, T-30 | M | deploy/)
 - [x] **T-21: Lighthouse + accessibility + mobile QA pass** — mobile-preset Lighthouse (load <2s over throttled network), WCAG AA/a11y audit, 375–430px manual sweep on all pages. (US-3 | deps: T-8, T-9, T-10, T-11, T-12, T-17 | M | qa/)
 - [x] **T-22: Extensibility manual verification (stub "Now" section)** — register a stub section and prove it appears in nav + sitemap with zero nav/layout/sitemap code changes, then revert. (US-9 | deps: T-3, T-5, T-7, T-15 | S | qa/)
 - [x] **T-24: ~~Owner PDF commit + verification~~ — CANCELLED (PRD v1.5, OQ-7)** — never executed; no PDF was ever committed, so there is no file to verify and the cache-header obligation (`DEP-7`) it carried is stripped by T-27 instead. Retained as a tombstone so the T-ID is never reused. (RES-2 | deps: none | S | content/)
@@ -124,6 +140,11 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
 - **[SCOPE NOTE (PRD v1.5, OQ-7):]** this ticket originally created **three** skeletons (`home`, `resume`, `about`) and asserted `getSections()` returns 3 entries. **T-25** deletes `resume.md` and re-points `about.md` to `order: 2`, so the shipped registry returns exactly **2** entries (`home` → `/`, `about` → `/about/`). No edit to `src/config/sections.ts` is needed or wanted — it is registry-derived by design. Re-verified in T-28.
 
 #### T-4: Site URL config (PUBLIC_SITE_URL, default `https://mattoconn.pages.dev`)
+
+> **[v1.6] Patched by T-29.** The default host is now `https://www.mattoconn.workers.dev` (PRD
+> DEP-5, OQ-8). The criteria below are the audit record of what T-4 shipped; the `CF_PAGES_BRANCH`
+> documentation it required is removed by T-30. The critical constraint generalises: no
+> Cloudflare-injected host or branch variable (`CF_PAGES_*`, `WORKERS_CI_*`) is ever the site URL.
 
 - **Acceptance Criteria:**
   - `src/config/site.ts` exports `SITE_URL = import.meta.env.PUBLIC_SITE_URL ?? 'https://mattoconn.pages.dev'` — the **single source of truth** for all absolute URLs. (SEO-11, DEP-5)
@@ -313,6 +334,12 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
 
 #### T-18: Build-time `_headers` generation
 
+> **[v1.6] Patched by T-30.** `CF_PAGES_BRANCH` does not exist on Cloudflare Workers, so the
+> detection below would treat every build as production and noindex nothing. T-30 replaces it with
+> a host-matched rule written on every build (design §10.1). The "mechanism note" below, that
+> `_headers` cannot match by host, is wrong for Workers static assets, which support absolute-URL
+> rules. The criteria below remain the audit record of what T-18 shipped.
+
 - **Acceptance Criteria:**
   - `scripts/gen-headers.mjs` runs as part of the build (`node scripts/gen-headers.mjs` after `astro build`) and writes `dist/_headers`. (DEP-7 → **tombstoned**, see below)
   - **Preview-`noindex` rule (the surviving obligation):** when the build is **not** for the canonical host — detected via `CF_PAGES_BRANCH` (e.g. preview or PR branches) — a global `/*` `X-Robots-Tag: noindex` is emitted. Production builds of the canonical host emit **no** noindex rule. (SEO-12)
@@ -325,33 +352,84 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
 - **Verification command(s) (v1.5):** `CF_PAGES_BRANCH=preview-x npm run build && cat dist/_headers` shows the noindex rule; production: `npm run build && (test ! -e dist/_headers && echo 'OK: no _headers on production')` — the `rg 'max-age=60'` check is **deleted with the rule it asserted**. (SEO-12)
 - **Notes:** **SEO-12 (MUST)** is the live obligation here; `DEP-7`/`RES-5`/`US-7` are tombstoned. Research finding: Cloudflare serves the same build on multiple hosts (`<hash>.mattoconn.pages.dev`, preview URLs) — the "duplicate site outranks real site" failure mode is prevented by `noindex` **headers**, not `robots.txt` Disallow (pages must stay crawlable to be deindexed by the noindex signal). Never set `PUBLIC_SITE_URL` to a preview host (T-4 constraint).
 
-#### T-19: Cloudflare Pages deployment (git-push CI/CD)
+#### T-19: Cloudflare Workers static-assets deployment (git-push CI/CD)
 
+> **[v1.6] Rewritten.** The original T-19 targeted classic Cloudflare Pages, which no longer exists
+> for new projects (PRD §5.6, OQ-8). Its first execution failed: with no committed Wrangler config,
+> Workers Builds' `wrangler deploy` auto-ran `astro add cloudflare`, installed the SSR adapter, and
+> moved output to `dist/client/`. **Do not "fix" `verify-static.mjs` to accept `dist/client/`; that
+> path is the symptom.** The stale `personal-website` Worker was deleted by the planner on
+> 2026-09-27. The normative procedure, including exact commands and dashboard values, is tech
+> design **§10.3**; this ticket is its acceptance contract.
+
+- **Actors:** steps marked **[Owner]** need the Cloudflare dashboard and cannot be done by an agent.
+  The orchestrator must pause and ask the owner at each one, then verify the result itself.
 - **Acceptance Criteria:**
-  - Repo connected to Cloudflare Pages via "Connect to Git" (or `wrangler pages` if a config-first flow is preferred per tech design §Headers & Deploy); production branch is the repo default (e.g., `main`). (DEP-1, DEP-2, DEP-6)
-  - Build configuration: build command `npm run build` (which includes the T-18 headers step), output directory `dist`. (DEP-1, DEP-3)
-  - Production environment variable `PUBLIC_SITE_URL=https://mattoconn.pages.dev` set in the Pages project (T-4 wiring). (DEP-5)
-  - Subdomain **`mattoconn.pages.dev`** requested; if unavailable, stop and escalate to the planner (do not silently pick another name). (DEP-5)
-  - Git push → auto-deploy completes in <5 minutes with a successful build log; content edit → push → deployed content updated. (DEP-2, DEP-6, US-12, US-13)
-  - Site reachable at the free subdomain with zero cost; custom domain **not** configured. (DEP-1, DEP-5, US-14)
-  - **CI gate retrofit (moved here from T-20 per plan review):** once the project exists and the
-    initial deploy is green, update the Cloudflare Pages build command to
-    `npm run build && npm run verify` so zero-JS/third-party/no-résidue asserts block every future
-    deploy. This step needs a live project, which is why it lives in T-19 rather than in T-20 — T-20's
-    script was authored and tested without a deploy, and its `package.json`/`scripts/` work is already
-    complete. (DEP-3, NF-4, NF-5)
-  - **Placeholder-copy disclosure (RESOLVED per plan review — read before deploying):** the deploy will
-    go live with `HUMAN COPY` placeholders in the `Person` JSON-LD `jobTitle` and the meta description,
-    because T-23 is owner-blocked and deliberately does not gate the pipeline (risk R3). That is an
-    accepted intermediate state, **not** a v1 launch. Before the site is shared publicly or announced
-    as finished, T-23 must land and be re-deployed; until then the site is a staging URL. The
-    orchestrator must state this explicitly in the T-19 completion notes and must **not** describe the
-    deploy as "v1 launched". (US-1, US-8, US-15)
-- **Affected paths:** Cloudflare Pages project config (dashboard) and/or `wrangler.toml` (if used), repo CI config if applicable, `README` deploy note (optional)
+  - **Precondition, Wrangler auth:** `npx wrangler whoami` must show the owner's account
+    ("Mattgoconn@gmail.com's Account"); the planner confirmed an OAuth login exists on this machine
+    on 2026-09-27. If it reports not authenticated, **[Owner]** runs `npx wrangler login`. Never
+    create, request, or commit an API token; `CLOUDFLARE_API_TOKEN` is not used. (DEP-1)
+  - **Precondition:** `npx wrangler deployments list --name personal-website` fails with "not found".
+    If it lists deployments, stop and escalate; something recreated the stale Worker. (DEP-8)
+  - **[Owner]** Account workers.dev subdomain renamed `mattgoconn` → **`mattoconn`**;
+    `dig +short probe.mattoconn.workers.dev` returns an address. **If `mattoconn` is unavailable,
+    stop and escalate to the planner**; never continue on `mattgoconn` or pick another name. (DEP-5)
+  - `wrangler` installed with `npm install --save-dev wrangler@^4.142.0` (Worker Previews need
+    ≥ 4.135.0). `package.json` scripts are **unchanged**. (DEP-8)
+  - `wrangler.jsonc` committed at the repo root, **byte-for-byte the design §10.3 block**: `name: "www"`,
+    `workers_dev: true`, `preview_urls: true`, `assets.directory: "./dist"`,
+    `assets.not_found_handling: "404-page"`, `assets.html_handling: "auto-trailing-slash"`, and
+    **no `main` key**. Hand-written; never generated by `wrangler init` or `astro add cloudflare`. (DEP-8, NF-6)
+  - **Static-only invariants (local, all must pass):** `npm run build` exits 0 (it already runs
+    `verify-static.mjs`); `test ! -e dist/client && test ! -e dist/_worker.js`;
+    `npm ls @astrojs/cloudflare` shows it absent; `rg -n '"main"' wrangler.jsonc` finds nothing;
+    `npx wrangler deploy --dry-run` exits 0. (DEP-3, DEP-8, NF-5, NF-6)
+  - **Local runtime (`npx wrangler dev --port 8787`):** `/nope/` returns `404` with the custom 404
+    page body (T-11); `/about` redirects to `/about/`. (DEP-8, NF-2)
+  - First deploy `npm run build && npx wrangler deploy` creates Worker `www`, uploads assets only
+    (no script bundle), and reports `https://www.mattoconn.workers.dev`. (DEP-1, DEP-5)
+  - **[Owner]** Worker `www` → Settings → Builds connected to this repo: production branch `main`;
+    build command `npm run build`; deploy command `npx wrangler deploy`; non-production branch builds
+    **on** with preview command `npx wrangler preview`; root directory `/`; **no build variables**
+    (in particular **no** `PUBLIC_SITE_URL`: the committed default is the canonical host, R10).
+    Node comes from `.node-version`; add `NODE_VERSION=24.21.0` only if the build log shows Node
+    < 22.12, and record that in the completion notes. (DEP-1, DEP-2)
+  - Pushing the T-19 commit to `main` produces a green Workers Build in < 5 minutes whose log
+    shows `verify: OK`, and `npx wrangler deployments list --name www` shows the new deployment.
+    (DEP-2, DEP-6, US-12, US-13)
+  - **Live smoke checks** (`H=https://www.mattoconn.workers.dev`, design §10.3 step 6):
+    `/` and `/about/` → 200; `/about` → redirect to `/about/`; `/nope/`, `/resume/`, `/resume.pdf`
+    → 404 with the custom page; `robots.txt` `Sitemap:` line and the home canonical both use `$H`.
+    (US-14, SEO-11, RES-X2)
+  - **Canonical host is never noindexed (blocker):** `curl -sI $H/ | grep -i '^x-robots-tag'`
+    prints nothing. If it prints anything: `npx wrangler rollback` immediately, then escalate. (SEO-12)
+  - **Non-canonical hosts are noindexed:** the Version URL printed by `npx wrangler versions upload`
+    (`https://<prefix>-www.mattoconn.workers.dev`) and the Preview URL of a throwaway pushed branch
+    both return `x-robots-tag: noindex`. Delete the throwaway branch afterwards. (SEO-12)
+  - Zero cost, no custom domain: the Worker has no Routes or Custom Domains. (DEP-1, US-14)
+  - `README.md`: **every** "Cloudflare Pages" occurrence becomes Cloudflare Workers (static assets),
+    including the Overview intro sentence ("…deployed to Cloudflare Pages.");
+    `rg -n 'Cloudflare Pages' README.md` finds nothing. A new Deploy section documents `wrangler.jsonc`, that `@astrojs/cloudflare` must never be added, the Workers Builds
+    settings above, and `npx wrangler rollback`. (DEP-6)
+  - **CI gate:** no retrofit step. `npm run build` already chains `verify-static.mjs` (shipped in
+    `40a9c78`), so the Workers Builds build command stays plain `npm run build`. Do **not** append
+    `&& npm run verify`. (DEP-3, NF-4, NF-5)
+  - **Placeholder-copy disclosure:** T-23 has since landed, so real copy ships. The completion notes
+    must still say which T-23 commit is live and must not call this "v1 launched" until the owner
+    confirms the live copy (MS-9). (US-1, US-8, US-15)
+- **Affected paths:** `wrangler.jsonc` (new), `package.json` + `package-lock.json` (`wrangler`
+  devDep), `README.md` (deploy section); Cloudflare account subdomain and Worker `www` Builds
+  settings (dashboard, owner)
 - **Affected codebase:** `deploy/`
-- **Suggested skills:** `ci/cd-cloudflare`, `devops`, `git`
-- **Verification command(s):** `git push origin main` then `curl -sI https://mattoconn.pages.dev/ | head -1` (HTTP 200). **[UPDATED per PRD v1.5: the `/resume.pdf` smoke check is deleted outright — no PDF is ever deployed, so there is nothing to curl. If a `404` is returned for `/resume.pdf` on the deployed host, that is the correct v1.5 end state, not a bug.]**
-- **Notes:** DEP-1/2/5/6, US-12/13/14. Cloudflare Pages free tier: unlimited bandwidth/requests, no commercial restriction, `_headers` support — the researched platform decision (PRD §5.6). Subdomain availability must be confirmed at deploy time (DEP-5). Preview branches from PRs automatically inherit the noindex behavior from T-18.
+- **Suggested skills:** `ci/cd-cloudflare` (Workers static assets, Workers Builds, Wrangler), `devops`, `git`
+- **Verification command(s):** the local invariants above; then
+  `curl -sI https://www.mattoconn.workers.dev/ | head -1` (200) and
+  `curl -sI https://www.mattoconn.workers.dev/ | grep -ci '^x-robots-tag'` (`0`).
+- **Notes:** DEP-1/2/5/6/8, US-12/13/14. Depends on **T-29** (the build must already emit the new
+  host, or the first deploy ships `pages.dev` canonicals) and **T-30** (the first deploy's own
+  Version URLs must already be noindexed). QA carry-forward **N-1** from `qa/qa-report-T-27.md`
+  ("confirm the production branch is literally `main`") is closed by T-30, which deletes the
+  `PROD_BRANCH` constant; nothing in the repo depends on the branch name any more.
 
 #### T-20: Static-output verification script (zero-JS + zero third-party)
 
@@ -654,7 +732,7 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
     (SEO-3, SEO-10, SEO-11, R8)
   - **No dead résumé route (RES-X2):** via `npm run preview`, requesting `/resume/` returns the styled
     404 page (not a bare server error, not a redirect), and no built page links to it.
-  - **Production `_headers` absence (added per plan review):** a default local build
+  - **[v1.6] Superseded by T-30 (audit record only):** every build now writes the host-matched `dist/_headers` rule, so the absence asserted below no longer holds and is not a regression. **Production `_headers` absence (added per plan review):** a default local build
     (`npm run build`, no `CF_PAGES_BRANCH`) leaves **no `dist/_headers` file at all**, and a preview
     build (`CF_PAGES_BRANCH=preview-x npm run build`) produces a `dist/_headers` containing only the
     `/*` + `X-Robots-Tag: noindex` rule. Four places in the tech design (§10.1, §11.1 rule 3b, §11.3)
@@ -687,6 +765,97 @@ The site ships structured data (Person JSON-LD on Home), build-time `sitemap.xml
   caused by the removal) are logged, not silently absorbed — the planner should know. This ticket must
   complete before `T-19`: the first production deploy ships the trimmed site, never the résumé.
 
+#### T-29: Canonical host → `https://www.mattoconn.workers.dev`
+
+> **[v1.6] Patch to T-4's shipped default** (PRD DEP-5, OQ-8). Code-only; the account-subdomain
+> rename that makes the host resolve is a T-19 owner step. This ticket does not need the host to be
+> live: every check below runs against local build output.
+
+- **Acceptance Criteria:**
+  - `astro.config.mjs`: the default in `(env.PUBLIC_SITE_URL || '…')` becomes
+    `'https://www.mattoconn.workers.dev'`. The `loadEnv` resolution, trailing-slash strip, and every
+    other line stay byte-identical. (DEP-5, SEO-11)
+  - `src/config/site.ts` is **not edited**: as shipped it reads `import.meta.env.SITE` and contains no
+    host literal (design §4.5). Editing it is out of scope. (SEO-11)
+  - `.env.example`: the `PUBLIC_SITE_URL=` value and the "Defaults to …" comment name the new host.
+    Leave the `CF_PAGES_BRANCH`/`CF_PAGES_URL` blocks alone; T-30 removes them together with the
+    code that reads them. (DEP-5)
+  - `README.md`: the `PUBLIC_SITE_URL` bullet names the new default. Leave the "deployed to
+    Cloudflare Pages" line (T-19) and the `CF_PAGES_BRANCH` bullet (T-30). (DEP-5)
+  - No `mattoconn.pages.dev` literal remains outside `projects/`. (DEP-5)
+  - `npm run build` exits 0 (includes the verify gate), and the built site uses the new host
+    everywhere: robots `Sitemap:` line, every canonical, every sitemap `<loc>`, JSON-LD `url`. (SEO-11)
+  - `PUBLIC_SITE_URL=https://example.test npm run build` still exits 0 with `example.test` in the
+    same places (T-4's plumbing test still holds). Rebuild without it afterwards. (SEO-11)
+- **Affected paths:** `astro.config.mjs`, `.env.example`, `README.md`
+- **Affected codebase:** `astro/`
+- **Suggested skills:** `astro`, `npm`
+- **Verification command(s):**
+  `rg -n 'mattoconn\.pages\.dev' --hidden -g '!projects/**' -g '!node_modules/**' -g '!dist/**' .`
+  (no matches); `npm run build`;
+  `grep -F 'Sitemap: https://www.mattoconn.workers.dev/sitemap-index.xml' dist/robots.txt`;
+  `grep -F 'href="https://www.mattoconn.workers.dev/about/"' dist/about/index.html`;
+  `grep -F '<loc>https://www.mattoconn.workers.dev/</loc>' dist/sitemap-0.xml`;
+  `rg -c 'pages\.dev' dist/` (no matches).
+- **Notes:** At this rank `gen-headers.mjs` still uses `CF_PAGES_BRANCH`, so a plain build writes no
+  `_headers` and the gate passes unchanged; T-30 changes that. The host-change risk R1 is carried by
+  T-19: if the account subdomain `mattoconn` turns out to be unavailable, the planner revises this
+  literal; T-19 must not.
+
+#### T-30: Host-matched `_headers` noindex (replaces `CF_PAGES_BRANCH` detection)
+
+> **[v1.6] Patch to T-18/T-27's shipped mechanism** (PRD SEO-12 note, OQ-8(c)). `CF_PAGES_BRANCH`
+> is a classic-Pages variable that Workers Builds never sets, so on the new platform every build
+> would be classified as production and no host would ever get `noindex`. Branch detection is
+> replaced, not re-pointed at `WORKERS_CI_BRANCH`: see design §10.1 for why. The exact code for all
+> three scripts is in design §10.1 and §11.1 (rule 4e); implement it as written.
+
+- **Acceptance Criteria:**
+  - New `scripts/noindex-rule.mjs` exports `canonicalOriginFromRobots`, `noindexHeadersFor`, and
+    `hostPatternMatches` exactly as design §10.1 specifies: pure, zero dependencies, no env reads. (SEO-12)
+  - `scripts/gen-headers.mjs` is rewritten per design §10.1: reads the canonical origin from
+    `dist/robots.txt`, **always** writes `dist/_headers` = `noindexHeadersFor(origin)`, and reads no
+    environment variable. A missing `robots.txt` or `Sitemap:` line fails the build. (SEO-12, RES-X3)
+  - With the default host, `dist/_headers` is byte-exactly
+    `https://:prefix-www.mattoconn.workers.dev/*\n  X-Robots-Tag: noindex\n` on **every** build. (SEO-12)
+  - Output is environment-independent: a build with `CF_PAGES_BRANCH=preview-x WORKERS_CI_BRANCH=feature-x`
+    produces a byte-identical `dist/_headers`. (SEO-12)
+  - With `PUBLIC_SITE_URL=https://example.test`, `dist/_headers` is
+    `https://:worker.:account.workers.dev/*\n  X-Robots-Tag: noindex\n` and `npm run build` exits 0. (SEO-12)
+  - `scripts/verify-static.mjs`: the branch-aware rule 4e block (`NOINDEX_RULE`, `PROD_BRANCH`,
+    `process.env.CF_PAGES_BRANCH`) is replaced by the design §11.1 rule 4e block, and the header
+    comment's `CF_PAGES_BRANCH`-prefixed-build paragraph is deleted. Rule 0's own `SITE_ORIGIN`
+    derivation and every other rule are unchanged. (SEO-12, RES-X3)
+  - **Planted negatives:** after `npm run build`, each of these makes `npm run verify` exit non-zero
+    with a `dist/_headers` failure, and a fresh `npm run build` restores green:
+    (a) overwrite with `/*\n  X-Robots-Tag: noindex\n` (path-only rule);
+    (b) overwrite with `https://:a.mattoconn.workers.dev/*\n  X-Robots-Tag: noindex\n` (matches the canonical host);
+    (c) `rm dist/_headers`. (SEO-12)
+  - `.env.example`: the `CF_PAGES_BRANCH` block (including the live `CF_PAGES_BRANCH=main` line) and
+    the `CF_PAGES_URL` block are removed, replaced by one comment: the build reads no
+    Cloudflare-injected variable; non-canonical hosts are noindexed by a host-matched `_headers`
+    rule derived from `PUBLIC_SITE_URL`. The "kept out of search via CF_PAGES_BRANCH" phrase in the
+    `PUBLIC_SITE_URL` comment is reworded to match. (DEP-6)
+  - `README.md`: the `CF_PAGES_BRANCH` bullet is replaced by a `_headers` explanation (host-matched,
+    identical on every build, how to read it), and the `npm run build` row says it **writes**
+    `dist/_headers` (not "emit (or remove)"). (DEP-6)
+  - No reference to `CF_PAGES`, `WORKERS_CI`, or `PROD_BRANCH` remains in `scripts/`, `src/`,
+    `astro.config.mjs`, `.env.example`, or `README.md`. (SEO-12)
+- **Affected paths:** `scripts/noindex-rule.mjs` (new), `scripts/gen-headers.mjs`,
+  `scripts/verify-static.mjs`, `.env.example`, `README.md`, `dist/_headers` (generated)
+- **Affected codebase:** `scripts/`
+- **Suggested skills:** `node`, `regex/parsing`, `ci/cd-cloudflare`
+- **Verification command(s):**
+  `npm run build && printf 'https://:prefix-www.mattoconn.workers.dev/*\n  X-Robots-Tag: noindex\n' | cmp - dist/_headers`;
+  `cp dist/_headers "$TMPDIR/h" && CF_PAGES_BRANCH=preview-x WORKERS_CI_BRANCH=feature-x npm run build && cmp "$TMPDIR/h" dist/_headers`;
+  the three planted negatives above; `PUBLIC_SITE_URL=https://example.test npm run build && cat dist/_headers`, then `npm run build`;
+  `rg -n 'CF_PAGES|WORKERS_CI|PROD_BRANCH' scripts/ src/ astro.config.mjs .env.example README.md` (no matches).
+- **Notes:** This deliberately **reverses** T-27's "production writes no `_headers`" invariant, with
+  owner approval (PRD OQ-8). The invariant that mattered, "the canonical host never gets `noindex`",
+  is kept and now asserted directly and independently of the writer. Host-matched rules cannot fire
+  on `localhost`, so live confirmation of Cloudflare's placeholder matching is a T-19 smoke check.
+  Closes QA carry-forward N-1 (`qa/qa-report-T-27.md`).
+
 ---
 
 ## Dependency Graph
@@ -709,7 +878,11 @@ T-8 ── T-20 (verify script)   T-17 (fonts) ── T-20/T-21
 REMOVAL CHAIN (PRD v1.5 — must all land before the first production deploy):
 T-2/T-3/T-7 ── T-25 (drop resume.md + ResumeSection + enum) ── T-26 (Home link + JSON-LD + token)
                                     └── T-18/T-20 ── T-27 (scripts: headers, verify, fonts) ──┐
-T-12/T-17 ───────────────────────────────────────────────────────────────── T-28 (re-verify) ─┴─ T-19 (deploy)
+T-12/T-17 ───────────────────────────────────────────────────────────────── T-28 (re-verify) ─┐
+                                                                                              │
+PLATFORM CORRECTION (PRD v1.6 - Pages → Workers static assets):                               │
+T-4 ── T-29 (host → www.mattoconn.workers.dev) ── T-30 (host-matched noindex) ── T-19 (deploy) ◀┘
+T-18/T-27 ─────────────────────────────────────── T-30
 T-8/T-10/T-13 ── T-23 (human copy, owner-blocked; does NOT gate T-19)
 ```
 
@@ -743,7 +916,9 @@ Explicit edges:
 | **T-26** | T-25, T-8, T-13 |
 | **T-27** | T-25, T-18, T-20 |
 | **T-28** | T-25, T-26, T-27, T-12, T-17 |
-| **T-19** | T-18, **T-28** |
+| **T-29** | T-4 |
+| **T-30** | T-18, T-27, T-29 |
+| **T-19** | T-18, **T-28**, **T-29**, **T-30** |
 | T-20 | T-7, T-8, T-10, T-11, T-15, T-16, T-17, T-18 |
 | T-21 | T-8, T-9, T-10, T-11, T-12, T-17 |
 | T-22 | T-3, T-5, T-7, T-15 |
@@ -765,8 +940,8 @@ constraint introduced by PRD v1.5.
 
 | # | Risk | Severity | Mitigation |
 |---|---|---|---|
-| R1 | **`mattoconn.pages.dev` subdomain unavailable** (DEP-5) | High | T-19 checks availability at deploy time and **stops + escalates to the planner** rather than silently picking another name. All URLs already dep-inject via `SITE_URL` (T-4), so a rename is a one-variable change. |
-| R2 | **Preview/deployment-host `noindex` mechanism** (SEO-12): Cloudflare `_headers` cannot match by host, so the noindex signal must be branch/env-triggered at build (T-18). Wrong detection → either leaked preview indexation or — worse — noindexing the canonical host. | High | Detection via `CF_PAGES_BRANCH`/build env with the production branch explicitly enumerated; prod builds never emit noindex. Canonical tags always target `SITE_URL` (never `CF_PAGES_URL`). Confirmed in tech design §Headers & Deploy. |
+| R1 | **Account workers.dev subdomain `mattoconn` unavailable** (DEP-5; was `mattoconn.pages.dev` before v1.6) | High | T-19's owner step renames `mattgoconn` → `mattoconn` and **stops + escalates to the planner** if the name is taken, rather than deploying on `mattgoconn` or picking another name. DNS showed `mattoconn.workers.dev` unregistered on 2026-09-27, but only the rename can confirm it. All URLs dep-inject from one literal (T-29), so a revised name is a one-line planner change. |
+| R2 | **Non-canonical-host `noindex` mechanism** (SEO-12). **[v1.6]** Workers static assets `_headers` supports host-matched rules, so T-30 derives one rule from the canonical host (`https://:prefix-www.mattoconn.workers.dev/*`). Wrong rule → either indexable preview/version URLs or, worse, a noindexed canonical host. | High | Rule written on every build and derived from build output, not env; `verify-static.mjs` rule 4e fails any path-only rule or any rule whose host pattern can match the canonical host (T-30); T-19's live smoke check greps the canonical response for `X-Robots-Tag` and rolls back on any hit. Cloudflare's own automatic noindex on Preview URLs is extra cover, not the mechanism. (v1.5's `CF_PAGES_BRANCH` detection is retired: Workers Builds never sets it.) |
 | R3 | **Human-blocked content stalls delivery** (T-23 owner copy) | Medium | The ticket is explicitly HUMAN-BLOCKED and terminal; the site deploys fully with clearly-marked `HUMAN COPY` placeholders (MS-8), so the pipeline is never blocked upstream. No dev-authored biographical facts are substituted. **Deploy is not launch:** the URL is treated as staging and is not announced as finished until T-23 lands and is re-deployed (MS-9, plan §4). (v1.5: only one human-blocked ticket remains — the résumé PDF ticket T-24 was cancelled, removing a whole class of owner dependency.) |
 | R4 | **US-9/REG-6 vs REG-7 tension**: the closed template enum can't accept a stub `now` section without touching the schema. | Medium | T-22's test procedure scopes any enum change to its single sanctioned extension module and asserts zero nav/layout/sitemap/route changes. Tech design §Content Schema & Registry decides: pre-include the four capped future templates vs. one-line extension per section. (v1.5: the enum is now `home\|about\|projects\|blog\|now\|uses` after T-25 removed `resume`; `now` is still pre-included, so T-22's two-file proof holds unchanged.) |
 | R5 | **Zero-JS scanner false negatives/positives** (NF-5): JSON-LD `<script>` blocks must not be flagged; a future island must be flagged. | Medium | T-20 exempts only `type="application/ld+json"`; treats `script src`, inline JS bodies, and event-handler attributes as violations; negative test (plant a script, expect failure) is part of acceptance. |
@@ -774,7 +949,7 @@ constraint introduced by PRD v1.5.
 | R7 | **NF-1 load <2s on throttled mobile** compromised by fonts/CSS weight (or preview-host latency). | Medium | T-17 subsets to used glyphs, single family, WOFF2, `font-display: swap`; T-21 gates the metric on a local preview (deterministic) before production confirmation. |
 | R8 | **Canonical/sitemap/robots URL drift** (trailing-slash or host inconsistencies) could reintroduce the duplicate-host indexing bug (SEO-11/12). | Medium | Single `SITE_URL` source (T-4) + a `path()` helper normalized once; T-12/T-15/T-16 all read from it; byte-identical URLs are explicit acceptance criteria in T-12. |
 | R9 | **`npm create astro` interactivity/network flakiness in an automated pipeline.** | Low | Non-interactive flags (`--template minimal --no-git --yes`); if registry access fails, retry/freeze versions per tech design §Repo Layout & Tooling. |
-| R10 | **Preview env leakage**: `PUBLIC_SITE_URL` accidentally set to a preview host in a preview build breaks canonical/noindex pairing. | Medium | Env var only configured on the production branch in the Pages project (T-19); previews use the default canonical value. Documented as a hard constraint in T-4. |
+| R10 | **Preview env leakage**: `PUBLIC_SITE_URL` accidentally set to a preview host breaks canonical/noindex pairing. | Medium | **[v1.6]** `PUBLIC_SITE_URL` is set **nowhere** in Cloudflare (T-19 AC: no build variables); the committed default is the canonical host. Documented as a hard constraint in T-4/T-29. |
 | R11 | **Incomplete removal (NEW, v1.5):** the résumé is deleted from the pages but survives somewhere less visible — a stale `/resume.pdf` header rule, a presence-assert that demands the deleted page, a font-subsetting input list pointing at a deleted file, or a `ProfilePage` node reattached to another page. Each is invisible on the rendered site and would ship silently. | Medium | Every residue class has an owning ticket and an assertion: registry/template/enum → `T-25`; links, JSON-LD, token name, comments → `T-26`; scripts and their negative asserts → `T-27`; whole-site re-verification → `T-28`. The `rg -i 'resume' dist/` check in `T-26` is the single strongest guard — build output is generated, so no comment can mask a residue. `RES-X1..X4` make these MUST, not nice-to-have. |
 | R12 | **Deploy-before-removal race (NEW, v1.5):** the résumé is already committed, so a `T-19` deploy that runs before `T-28` would publish it publicly. | High | Hard dependency edge `T-19 → T-28`, and the removal tickets are sequenced ahead of `T-19` in Part A's topological order. `T-19` is still the only open deploy ticket, so the ordering holds in a lazy single pass. If anyone proposes deploying early, stop and return to the planner. |
 | R13 | **Silent capability loss (NEW, v1.5):** the site loses its only `ProfilePage` structured data and its most concrete depth artifact, which may weaken how well AI assistants and search engines can summarise the owner — the exact parseability the project optimizes for. | Medium | Accepted explicitly in PRD OQ-3/OQ-7 rather than left implicit. Mitigations: `Person` JSON-LD (SEO-1) is retained and regression-guarded (`RES-X4`); `sameAs` still points at LinkedIn, so the authoritative entity link survives; the routing story (Home → About + LinkedIn + GitHub) is measured by the two new §8 metrics. If SEO-3's non-name-query goal later proves unmet, the correct response is a **new project**, not a résumé reinstatement. |
@@ -799,14 +974,14 @@ constraint introduced by PRD v1.5.
 | ~~RES-1~~ | **REMOVED (v1.5)** — was T-9 (retired) | SEO-8 | T-12 |
 | ~~RES-2~~ | **REMOVED (v1.5)** — was T-24 (cancelled) | SEO-9 | T-6 |
 | ~~RES-3~~ | **REMOVED (v1.5)** — was T-24 (cancelled) | SEO-10 | T-5, T-12, T-15, T-28 |
-| ~~RES-4~~ | **REMOVED (v1.5)** — was T-9 (retired) | SEO-11 | T-4, T-12, T-28 |
-| ~~RES-5~~ | **REMOVED (v1.5)** — was T-18, T-24; rule stripped by T-27 | SEO-12 | T-18, **T-27**, T-28 |
+| ~~RES-4~~ | **REMOVED (v1.5)** — was T-9 (retired) | SEO-11 | T-4, T-12, T-28, **T-29**, T-19 |
+| ~~RES-5~~ | **REMOVED (v1.5)** — was T-18, T-24; rule stripped by T-27 | SEO-12 | T-18, **T-27**, T-28, **T-30**, T-19 (live check) |
 | **RES-X1** (new) | **T-25, T-26, T-27**, T-28 | DEP-1 | T-19 |
 | **RES-X2** (new) | **T-28** | DEP-2 | T-19 |
-| **RES-X3** (new) | **T-27** | DEP-3 | T-1, T-20 |
+| **RES-X3** (new) | **T-27**, **T-30** | DEP-3 | T-1, T-20 |
 | **RES-X4** (new) | **T-26**, T-28 | DEP-4 (SHOULD) | T-1 |
-| ABT-1 | T-10, T-23 | DEP-5 | T-4, T-19 |
-| ABT-2 | T-23 | DEP-6 | T-19, T-23 |
+| ABT-1 | T-10, T-23 | DEP-5 | T-4, **T-29**, T-19 |
+| ABT-2 | T-23 | DEP-6 | T-19, T-23, T-30 (docs) |
 | ABT-3 | T-23 | ~~DEP-7~~ | **REMOVED (v1.5)** — was T-18, T-24; stripped by T-27 |
 | ABT-4 | T-10, T-21, T-28 | NF-1 | T-21, **T-28** |
 | REG-1 | T-2, **T-25** | NF-2 | T-8, T-11, T-21, **T-26**, **T-28** |
@@ -816,6 +991,7 @@ constraint introduced by PRD v1.5.
 | REG-5 | T-15, T-28 | NF-6 | T-1 |
 | REG-6 | T-7, T-22, T-28 | US-1 | T-8, T-23 |
 | REG-7 | T-2, **T-25**, T-22 | US-2 | T-8, T-26 |
+| **DEP-8** (new, v1.6) | **T-19** (committed assets-only `wrangler.jsonc`; static-only invariants + live check) | | |
 
 | User Story | Ticket(s) | User Story | Ticket(s) |
 |---|---|---|---|

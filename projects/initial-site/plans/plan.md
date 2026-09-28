@@ -7,19 +7,25 @@
 > are retired, `T-24` is cancelled. Everything else in this plan is unchanged, and `T-19` (first deploy)
 > now sits *behind* the removal so the résumé is never published even once.
 
+> **⚠ Revised 2026-09-27 - PRD v1.6 platform correction.** Cloudflare Pages is now part of Cloudflare
+> Workers, and T-19's first run failed when Workers Builds auto-installed the SSR adapter. The deploy
+> target is an **assets-only Worker** at **`https://www.mattoconn.workers.dev`** (PRD OQ-8). `T-19` is
+> rewritten; new `T-29` (canonical host) and `T-30` (host-matched noindex) precede it. The stale
+> `personal-website` Worker was deleted by the planner. Nothing else in this plan changes.
+
 ## 1. Header
 
 | Artifact | Path |
 |---|---|
 | Project | initial-site (frozen at PRD draft) |
 | Vision | [`projects/initial-site/vision/vision.md`](../vision/vision.md) |
-| PRD (v1.5) | [`projects/initial-site/PRDs/PRD.md`](../PRDs/PRD.md) |
-| Tickets (Sole tasking source — T-1 to T-28) | [`projects/initial-site/tickets/tickets.md`](../tickets/tickets.md) |
+| PRD (v1.6) | [`projects/initial-site/PRDs/PRD.md`](../PRDs/PRD.md) |
+| Tickets (Sole tasking source — T-1 to T-30) | [`projects/initial-site/tickets/tickets.md`](../tickets/tickets.md) |
 | Tech Design | [`projects/initial-site/designs/tech-design.md`](../designs/tech-design.md) |
 | UI Spec | [`projects/initial-site/designs/ui-design.md`](../designs/ui-design.md) |
 | Plan (this file — reference only) | `projects/initial-site/plans/plan.md` |
 
-**Tech stack:** Astro `^7` (Content Layer API + glob loader, `npm create astro@latest -- --template minimal --no-git`), TypeScript strict, scoped CSS (no Tailwind), IBM Plex Sans (OFL) subset to WOFF2, `@astrojs/sitemap`, Node toolchain, deployed to Cloudflare Pages at `mattoconn.pages.dev` (availability checked at deploy; no custom domain in v1). Static zero-JS output with JSON-LD data blocks exempt from the zero-JS scanner.
+**Tech stack:** Astro `^7` (Content Layer API + glob loader, `npm create astro@latest -- --template minimal --no-git`), TypeScript strict, scoped CSS (no Tailwind), IBM Plex Sans (OFL) subset to WOFF2, `@astrojs/sitemap`, Node toolchain, deployed as an assets-only Cloudflare Worker (static assets, Workers Builds) at `www.mattoconn.workers.dev` (v1.6; account subdomain checked at deploy; no custom domain in v1). Static zero-JS output with JSON-LD data blocks exempt from the zero-JS scanner.
 
 **How to execute:** prompt the `orchestrator` with **"tell me the next unit of work and implement it"** at any time. It picks the next available unchecked ticket in `projects/initial-site/tickets/tickets.md` and runs the build-review-QA loop for that item. The checkbox state in the tickets file **is** tasking state — this plan file is background reference only and holds no checkboxes.
 
@@ -33,8 +39,8 @@
 
 **Key decisions (normative, per tech design — devs must not re-decide).**
 
-- **Platform:** Cloudflare Pages (unlimited bandwidth, no commercial restriction — research-verified). Vercel rejected. Production host `mattoconn.pages.dev` is the single canonical host; `CF_PAGES_URL` (per-build preview host) is never used as the site URL.
-- **Site URL:** `src/config/site.ts` `SITE_URL = import.meta.env.PUBLIC_SITE_URL ?? 'https://mattoconn.pages.dev'` — single source for canonical, sitemap, JSON-LD, and `_headers`. Preview/deploy builds get `X-Robots-Tag: noindex` via `_headers` (host-based, `CF_PAGES_BRANCH !== 'main'`), never via a changed canonical.
+- **Platform [v1.6]:** Cloudflare Workers static assets, free tier (was Cloudflare Pages, now merged into Workers). Assets-only Worker `www` from a committed `wrangler.jsonc`; `@astrojs/cloudflare` banned (DEP-8). Vercel rejected. `www.mattoconn.workers.dev` is the single canonical host; no Cloudflare-injected host or branch variable is ever read.
+- **Site URL [v1.6]:** `astro.config.mjs` `site` (default `https://www.mattoconn.workers.dev`, T-29) is the single source; `src/config/site.ts` re-exports it. Non-canonical hosts (preview/deployment/version URLs) get `X-Robots-Tag: noindex` from a host-matched `_headers` rule written on every build (T-30), never via a changed canonical.
 - **Zero third-party / zero client JS:** no font CDNs (self-hosted subset WOFF2), no external requests anywhere; no `<script>` output except JSON-LD data blocks (`application/ld+json`). A verification script (`scripts/verify-static.mjs`, `npm run verify`) enforces this in CI.
 - **Structured data:** `Person` JSON-LD on Home (body, `is:inline`) is the **only** node on the site, from the single `src/config/person.ts` facts module. **[v1.5]** `ProfilePage` and its component are deleted (`T-26`); `Person` losing its sibling is why `T-28` explicitly re-asserts that the Person block still renders (`RES-X4`).
 - **No résumé surface:** **[v1.5]** deletion, not deactivation — content file, template, JSON-LD component, enum value, PDF, PDF header rule, and the CI presence-asserts are all removed. Reinstating any of them requires a **new PRD version**; a dev must not "helpfully" restore one.
@@ -45,11 +51,11 @@
 
 **Risks.**
 
-1. **DEP-5 subdomain availability** — `mattoconn.pages.dev` must exist at deploy time (T-19). If unavailable: **stop and escalate to the planner**; never silently pick another name (canonical/host assumptions cascade through T-4/T-15/T-16/T-18).
+1. **DEP-5 subdomain availability** — **[v1.6]** the account workers.dev subdomain must be renamed to `mattoconn` at deploy time (T-19). If unavailable: **stop and escalate to the planner**; never silently pick another name (canonical/host assumptions cascade through T-29/T-30).
 2. **Human-blocked closure** — T-23 cannot be completed by an agent, so the **public launch (MS-9)** waits on the owner. Everything through **MS-8 (deploy)** is fully agent-completable: the deploy itself proceeds with `HUMAN COPY` placeholders (risk R3) and is explicitly a staging URL, not a launch.
 3. **Astro 7.x is current-gen (Rust compiler)** — a moving target; the zero-JS/static-output contract is asserted from T-1 onward and enforced by the T-20 CI gate so regressions surface early (dist assertions, not assumptions).
 4. **Verifier-at-rank discipline** — the tickets were rewritten so every verification command runs against output that exists at that ticket's rank. The orchestrator must **not** reorder or add dist-output assertions to early tickets; if a verifier looks un-runnable, stop and return to the planner (do not improvise).
-5. **Skills catalog gaps** — `astro`, `css`, `a11y`, `seo`, `json-ld`, `cloudflare-pages`, `font-subsetting` have no installed skill (marked `[gap]` in tech design §13); `typescript-best-practices` is available and should be loaded for any `.ts`/`.tsx` work. Devs must follow tech design §/§-pointers per ticket over generic assumptions.
+5. **Skills catalog gaps** — `astro`, `css`, `a11y`, `seo`, `json-ld`, `cloudflare-workers` (v1.6; was `cloudflare-pages`), `font-subsetting` have no installed skill (marked `[gap]` in tech design §13); `typescript-best-practices` is available and should be loaded for any `.ts`/`.tsx` work. Devs must follow tech design §/§-pointers per ticket over generic assumptions.
 6. **T-22 stub must be reverted** — the extensibility proof lands `now.md` + `NowSection.astro`, verifies, then reverts; `git status` must be clean at completion (the T-22 AC encodes this).
 7. **[v1.5] Partial-removal residue** — the highest-likelihood failure mode of this re-plan is a *clean-looking* removal that leaves one stale reference: a nav string, a canonical, a `sameAs`, a font-subsetting input path, or a `.btn-download` class. Each of those produces a **passing build**, which is exactly why the guard is a **negative** assertion set (`T-27` scans built output for `resume` strings) and a full re-run of the visual checklist (`T-28`), not merely "the build is green."
 8. **[v1.5] Accidental restoration** — a dev reading an old ticket body or a historical QA report could conclude the résumé is still wanted. The tombstone/`[SCOPE NOTE]` markers and the `template: 'resume'` schema negative test exist to make that outcome fail loudly. If a ticket's prose seems to contradict the PRD v1.5 tombstones, the PRD wins and the ticket prose is the bug.
@@ -64,9 +70,9 @@
 - **JSON-LD:** `T-13` (Home `Person`) after `T-8` + `T-4`. **[v1.5]** `T-14` (Résumé `ProfilePage`) is retired; nothing replaces it.
 - **Sitemap (`T-15`)** — earliest rank where canonical URL output exists; needs route + templates building successfully. **[v1.5]** needs no edit for the removal: the sitemap is a crawl of generated routes, so the résumé URL vanishes with its content file.
 - **Fonts (`T-17`)** — subsetting input is the *built* pages, so it requires both templates (`T-8`, `T-10`) + `T-11` + `global.css` tokens (`T-6`).
-- **`_headers` (`T-18`)** needs a full successful build (route + templates + 404) since it introspects/guards the outputs. **[v1.5]** the PDF rule is stripped in `T-27`; the preview-`noindex` branch is untouched and must not be refactored.
+- **`_headers` (`T-18`)** needs a full successful build (route + templates + 404) since it introspects/guards the outputs. **[v1.5]** the PDF rule is stripped in `T-27`; the preview-`noindex` branch is untouched and must not be refactored. **[v1.6]** superseded: `T-30` replaces branch detection with a host-matched rule, because `CF_PAGES_BRANCH` does not exist on Workers.
 - **Removal block (`T-25` → `T-26`/`T-27` → `T-28`)** — a strict internal order, specified normatively in tech design §14. `T-25` must delete the content file and the template **in the same commit** (either alone is a build failure). `T-26` must verify the `Person` JSON-LD block still renders in the same commit (`RES-X4`) — the one step that can silently break surviving functionality. `T-28` must run last; running it earlier would pass against a half-removed site.
-- **Deploy (`T-19`) now depends on `T-28`** as well as `T-18`. **[v1.5] This is the change that gives the re-plan its point: the résumé has never been deployed, so there is no production rollback, no redirect, and no stale URL — the removal happens entirely inside the repo before a single visitor could see the site.** `T-19` additionally owns the **CI-gate retrofit** (`npm run build && npm run verify`, applied once the project exists) and must **disclose the placeholder-copy state** in its completion notes.
+- **Deploy (`T-19`) now depends on `T-28`** as well as `T-18`. **[v1.5] This is the change that gives the re-plan its point: the résumé has never been deployed, so there is no production rollback, no redirect, and no stale URL — the removal happens entirely inside the repo before a single visitor could see the site.** **[v1.6]** `T-19` also depends on `T-29` (host) and `T-30` (noindex) and has owner-only dashboard steps. Its former CI-gate retrofit is moot: `npm run build` already chains the verify gate.
 - **Verify script (`T-20`) has no deploy dependency.** **[Plan-review correction]** This note previously claimed `T-20` depends on `T-19` "because its CI retrofit edits the deployed project's build command." That was a real ownership defect, not a historical edge — a `- [x]` ticket cannot depend on work that has not happened. The retrofit has been **moved into `T-19`**, which already owns the Cloudflare project and can edit its build command immediately after the first green deploy. `T-20` is therefore a self-contained script ticket and is legitimately `- [x]`. The `npm run verify` gate still ships with `T-27`'s no-résumé asserts already inside it, because `T-27` runs before deploy.
 - **QA (`T-21`)** runs after templates, 404, SEO, and fonts are all live (`T-8`, `T-10`, `T-11`, `T-12`, `T-17`). **[v1.5]** `T-28` re-runs the a11y/mobile/Lighthouse sweep on the two-route site, since the link row and nav both lost an item.
 - **Extensibility proof (`T-22`)** after the route + sitemap + chrome; **must revert the stub**. **[v1.5]** unaffected by the removal — the stub proves `now` is pre-included in the enum, and the enum's `resume` member going away does not touch that.
@@ -83,7 +89,7 @@
 - **MS-5: Performance & Headers** — `[T-17, T-18]` (releasable: yes, release-auth: manual — pre-deploy build hardening)
 - **MS-6: Quality & Extensibility Proof** — `[T-21, T-22]` (releasable: yes, release-auth: manual)
 - **MS-7: Résumé Removal (v1.5)** — `[T-25, T-26, T-27, T-28]` (releasable: yes, release-auth: manual — **precondition for the first deploy**; includes the full removal-regression + a11y re-verification)
-- **MS-8: Deploy (staging URL)** — `[T-19]` (releasable: yes, release-auth: manual — first production deploy plus the CI verify gate; ships with `HUMAN COPY` placeholders by design, per risk R3)
+- **MS-8: Deploy (staging URL)** — `[T-29, T-30, T-19]` (releasable: yes, release-auth: manual — v1.6 platform patches then the first production deploy to `www.mattoconn.workers.dev`; T-23's copy is already in the build)
 - **MS-9: Public Launch** — `[T-23]` (releasable: yes, release-auth: manual — **owner-gated**; the site is not announced or shared as finished until this lands and is re-deployed)
 
 > **[Plan-review correction — MS-8/MS-9 split.]** These were one milestone, `MS-8: Deploy & Launch`,

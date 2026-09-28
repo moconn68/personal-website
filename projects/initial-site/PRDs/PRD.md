@@ -3,8 +3,8 @@
 > **Upstream source:** [vision.md](../vision/vision.md)  
 > **Project:** `initial-site` — the site-initialization project. Everything in §7 is excluded from
 > this PRD and becomes a separate project directory under `projects/`; see §11.1.  
-> **PRD version:** 1.5  
-> **Date:** 2026-09-26  
+> **PRD version:** 1.6  
+> **Date:** 2026-09-27  
 > **Author:** Product Manager (AI SDLC)
 
 > ### ⚠ Scope change in v1.5 — the résumé surface is removed
@@ -27,11 +27,27 @@
 >   rule, T-24). Those tickets are **retired** and new removal tickets `T-25`..`T-28` delete the
 >   shipped code **before** the first production deploy (`T-19`).
 
+> ### ⚠ Platform correction in v1.6 - Cloudflare Pages is now Cloudflare Workers
+>
+> **Found during T-19, 2026-09-27:** classic Cloudflare Pages no longer exists for new projects.
+> Wrangler delegates project creation to Workers ("Delegating to the latest version of Cloudflare
+> Pages, now part of Cloudflare Workers"), and every new Pages-style site is a **Worker with static
+> assets**. The dashboard's Connect-to-Git flow, finding no committed Wrangler config, ran
+> `astro add cloudflare`, installed the SSR adapter, and moved output to `dist/client/`.
+>
+> - **Same vendor, same free tier, same static output.** The host changes from `mattoconn.pages.dev`
+>   to **`www.mattoconn.workers.dev`** (OQ-8). The deploy is **assets-only**: no Worker script and no
+>   `@astrojs/cloudflare` adapter (new `DEP-8`), so NF-5/NF-6 are unchanged.
+> - **Changed:** DEP-1, DEP-5, SEO-12 mechanism note, §9 hosting row, US-14 AC, OQ-6 consequence.
+>   **Added:** DEP-8, OQ-8. No requirement is removed; no ID is renumbered.
+> - **Ticket impact:** `T-19` rewritten; new `T-29` (canonical host) and `T-30` (host-matched noindex)
+>   patch what `T-4` and `T-18` shipped. All other tickets are untouched.
+
 ---
 
 ## 1. Executive Summary
 
-This PRD defines v1 of a personal website for a professional software engineer: a static, zero-JavaScript, mobile-perfect site with three surfaces (Home scan page, About page, and a Section Registry for future extensibility). There is **no résumé surface** — the site publishes no résumé page and hosts no résumé PDF; the hero routes to LinkedIn for the maintained work history and to GitHub for output, while the About page carries the authored judgment signal. It is not a portfolio — it is an identity hub that prioritizes speed, parseability, and architectural cleanliness so that evidence (projects, writing) slots in as content later. The site deploys to a free-tier subdomain on Cloudflare Pages or Vercel, uses Astro + TypeScript, self-hosted fonts, and structured data (JSON-LD) for search engine and AI assistant discoverability.
+This PRD defines v1 of a personal website for a professional software engineer: a static, zero-JavaScript, mobile-perfect site with three surfaces (Home scan page, About page, and a Section Registry for future extensibility). There is **no résumé surface** — the site publishes no résumé page and hosts no résumé PDF; the hero routes to LinkedIn for the maintained work history and to GitHub for output, while the About page carries the authored judgment signal. It is not a portfolio — it is an identity hub that prioritizes speed, parseability, and architectural cleanliness so that evidence (projects, writing) slots in as content later. The site deploys to a free `workers.dev` subdomain as a static-assets-only Cloudflare Worker (v1.6; formerly Cloudflare Pages), uses Astro + TypeScript, self-hosted fonts, and structured data (JSON-LD) for search engine and AI assistant discoverability.
 
 ---
 
@@ -78,6 +94,7 @@ This PRD defines v1 of a personal website for a professional software engineer: 
 
 ### 4.4 No Custom Domain in v1
 - Deploy on free-tier subdomain (Cloudflare Pages or Vercel).
+- **[v1.6]** Cloudflare Pages has been folded into Workers; the free-tier subdomain is now `*.workers.dev` (DEP-5, OQ-8). The constraint itself is unchanged: no purchased domain in v1.
 
 ### 4.5 No Analytics / Tracking
 - Zero-tracking default. Any later analytics is an explicit, privacy-conscious choice.
@@ -169,19 +186,28 @@ are not in any removed ID, so they are restated here as MUST and tracked by the 
 | SEO-9 | Semantic HTML landmarks (`<header>`, `<main>`, `<nav>`, `<footer>`) on every page | MUST | Supports accessibility and crawler parsing |
 | SEO-10 | All pages crawlable and linkable — no orphan URLs | MUST | Every page reachable from nav or sitemap |
 | SEO-11 | Self-referencing absolute canonical URL on every page; exactly one canonical host | MUST | Researched 2026: Cloudflare serves the same content on multiple hosts; duplicate-host indexing is a real bug |
-| SEO-12 | Non-canonical hosts (Cloudflare deployment/preview URLs) served with `X-Robots-Tag: noindex` — not `robots.txt` Disallow (must stay crawlable to be deindexed) | MUST | Prevents the Cloudflare "duplicate site outranks real site" failure mode |
+| SEO-12 | Non-canonical hosts (Cloudflare deployment/preview URLs) served with `X-Robots-Tag: noindex` — not `robots.txt` Disallow (must stay crawlable to be deindexed) | MUST | Prevents the Cloudflare "duplicate site outranks real site" failure mode. **[v1.6]** Every non-canonical host of the Worker has the form `<prefix>-www.mattoconn.workers.dev` (preview, deployment, and version URLs). Workers static assets `_headers` can match on hostname, so the rule is host-matched and identical on every build; it no longer depends on a build-time branch variable. The canonical host must never match it. |
 
 ### 5.6 Build & Deploy
 
+> **[v1.6] Platform context.** Cloudflare has merged Pages into Workers. A new "Pages-style" site is
+> a Worker whose static files are served from an `assets` directory declared in a committed Wrangler
+> config (`wrangler.jsonc`); git-triggered builds are **Workers Builds**. The research case behind
+> DEP-1 still holds (free tier, static asset requests are free and unmetered, `_headers` support), so
+> this is a platform correction, not a vendor change. What the correction must prevent is the T-19
+> failure: with no committed config, Cloudflare's deploy step auto-configures an SSR Worker. DEP-8
+> makes the static-only shape a committed, checkable fact instead of a dashboard default.
+
 | ID | Requirement | Priority | Notes |
 |---|---|---|---|
-| DEP-1 | Deploy to **Cloudflare Pages** free tier (platform decided by research) | MUST | Researched 2026: unlimited bandwidth/requests, no commercial restriction, `_headers` file for cache control. (Vercel Hobby: personal/non-commercial only, metered bandwidth.) Free subdomain, no custom domain |
-| DEP-2 | Deploy triggered on git push (CI/CD) | MUST | — |
+| DEP-1 | Deploy to **Cloudflare Workers (static assets)** free tier, git-connected via **Workers Builds**. **[v1.6: was "Cloudflare Pages", which no longer exists for new projects.]** | MUST | Researched 2026: static asset requests are free and unmetered, no commercial restriction, `_headers` file support (including host-matched rules). (Vercel Hobby: personal/non-commercial only, metered bandwidth.) Free subdomain, no custom domain |
+| DEP-2 | Deploy triggered on git push (CI/CD) | MUST | Production branch `main` → `wrangler deploy`; other branches → Preview via `wrangler preview` |
 | DEP-3 | Build output is static HTML/CSS/images only | MUST | Zero-JS output; no PDF artifact (v1.5 removed the only non-HTML asset) |
 | DEP-4 | Build time < 60 seconds on representative content | SHOULD | — |
-| DEP-5 | Subdomain alias preference: **`mattoconn.pages.dev`** (Cloudflare Pages) | MUST | Verify availability at deploy time |
+| DEP-5 | Canonical host: **`www.mattoconn.workers.dev`** (Worker `www` on account subdomain `mattoconn`). **[v1.6: was `mattoconn.pages.dev`.]** | MUST | The account's workers.dev subdomain is currently `mattgoconn`; T-19 renames it to `mattoconn`. If `mattoconn` is unavailable at that moment, stop and escalate to the planner; never pick another name silently (OQ-8) |
 | DEP-6 | Edit workflow: edit markdown → commit → push → auto-deploy in minutes | MUST | No CMS, no backend |
-| ~~DEP-7~~ | ~~`/resume.pdf` served with `Cache-Control: public, max-age=60, must-revalidate`~~ | **REMOVED (v1.5)** | No PDF exists. The `_headers` generator's only remaining job is the preview `noindex` rule (SEO-12). See RES-X3. |
+| ~~DEP-7~~ | ~~`/resume.pdf` served with `Cache-Control: public, max-age=60, must-revalidate`~~ | **REMOVED (v1.5)** | No PDF exists. The `_headers` generator's only remaining job is the non-canonical-host `noindex` rule (SEO-12). See RES-X3. |
+| **DEP-8** (new, v1.6) | The Worker is **static-assets-only**: a committed `wrangler.jsonc` declares `assets.directory = "./dist"` and **no `main`** (no Worker script); `@astrojs/cloudflare` is never installed; build output stays flat in `dist/` (no `dist/client/`, no `dist/_worker.js`). Unmatched URLs serve `dist/404.html` with status 404 | MUST | Preserves NF-5/NF-6 on the new platform. The committed config is also what stops Workers Builds from auto-running `astro add cloudflare` |
 
 ---
 
@@ -194,7 +220,7 @@ are not in any removed ID, so they are restated here as MUST and tracked by the 
 | NF-3 | Accessibility baseline: semantic HTML, sufficient color contrast (WCAG AA), keyboard-navigable, alt text on any images | MUST | — |
 | NF-4 | Zero third-party requests on page load (no font CDN, no analytics, no tracking pixels) | MUST | Self-contained static assets |
 | NF-5 | No client-side JavaScript shipped to browser | MUST | — |
-| NF-6 | No server-side runtime required | MUST | Pure static output |
+| NF-6 | No server-side runtime required | MUST | Pure static output. **[v1.6]** On Workers this means an assets-only Worker with no script (DEP-8) |
 
 ---
 
@@ -250,7 +276,7 @@ Derived from the three target personas in the vision document:
 | Styling | Scoped CSS / Tailwind (TBD) | No client-side JS; CSS-only |
 | Fonts | Self-hosted subset (WOFF2) | No third-party CDN; performance + privacy |
 | ~~PDF handling~~ | ~~Static artifact — owner-provided PDF committed to `public/resume.pdf`~~ **REMOVED (v1.5)** | No PDF in v1; the site ships HTML/CSS/fonts only. |
-| Hosting | **Cloudflare Pages** free tier | `mattoconn.pages.dev`; git-push deploy; unlimited bandwidth/requests; `_headers` for the preview-noindex policy |
+| Hosting | **Cloudflare Workers (static assets)** free tier, Workers Builds. **[v1.6: was Cloudflare Pages]** | `www.mattoconn.workers.dev`; git-push deploy; assets-only Worker (DEP-8); free, unmetered static asset requests; host-matched `_headers` for the non-canonical-host noindex policy |
 | Structured data | Person JSON-LD (inline in HTML) | Machine-readable; sitemap.xml. ProfilePage JSON-LD removed with the résumé page (SEO-2) |
 | Future interactivity | React islands (Astro) — available when earned | Zero islands in v1 |
 
@@ -301,7 +327,7 @@ Derived from the three target personas in the vision document:
 |---|---|---|---|
 | US-12 | As the site owner, I want to deploy by pushing to git so there is no manual deploy step | P0 | Git push → auto-deploy in < 5 minutes |
 | US-13 | As the site owner, I want to edit content in markdown and see it live after push | P0 | Edit .md → commit → push → deployed content updated |
-| US-14 | As the site owner, I want the site on a free subdomain so I incur zero cost in v1 | P1 | Site accessible at platform-provided URL (e.g., `*.pages.dev` or `*.vercel.app`) |
+| US-14 | As the site owner, I want the site on a free subdomain so I incur zero cost in v1 | P1 | Site accessible at platform-provided URL: `https://www.mattoconn.workers.dev` (v1.6; was `*.pages.dev`) |
 
 ---
 
@@ -316,8 +342,9 @@ Derived from the three target personas in the vision document:
 | **OQ-3** | **Name commonness / SEO — name IS common, SEO is a first-class priority.** The owner's name is common online; winning exact-name search on a free subdomain is unlikely. SEO is still a priority — realistic wins are rich parsing when found, non-name queries, and being the authoritative entity linkable from other profiles. Custom domain is the single largest future SEO lever (deferred v1). | SEO-1 remains MUST. SEO-6 through SEO-12 added as MUST. **SEO-2 was promoted to MUST by this decision and is now removed by OQ-7** — the loss of ProfilePage structured data is an accepted consequence of removing the résumé page. §5.5 context note updated. |
 | ~~**OQ-4**~~ | ~~**Résumé detail level — out of scope for the site.**~~ **SUPERSEDED by OQ-7 (v1.5).** Retained for history: the résumé's internal content and detail level were entirely the owner's concern, living in the provided PDF. | No longer applicable — there is no PDF and no résumé surface. |
 | **OQ-5** | **Staleness policy — not a concern.** Owner updates whenever they have updates; no forced cadence, no date-stamping, no "90-day" rule. | "Stale ≠ abandoned" metric removed from §8. No date-stamp requirements added. **Reinforced by v1.5:** removing the hosted PDF eliminates the single stalest-prone asset the site would have carried. |
-| **OQ-6** | **Subdomain alias — `mattoconn`.** Desired subdomain identity is `mattoconn`. Hosting research (2026) recommends **Cloudflare Pages**: unlimited bandwidth/requests, no commercial restriction, `_headers` for cache control; Vercel Hobby is personal/non-commercial only with metered bandwidth. | DEP-1/DEP-5 encode Cloudflare Pages (`mattoconn.pages.dev`, availability checked at deploy). §9 hosting row updated. |
+| **OQ-6** | **Subdomain alias — `mattoconn`.** Desired subdomain identity is `mattoconn`. Hosting research (2026) recommends **Cloudflare Pages**: unlimited bandwidth/requests, no commercial restriction, `_headers` for cache control; Vercel Hobby is personal/non-commercial only with metered bandwidth. | DEP-1/DEP-5 encode Cloudflare Pages (`mattoconn.pages.dev`, availability checked at deploy). §9 hosting row updated. **[v1.6] Host amended by OQ-8**; the `mattoconn` identity survives as the account's workers.dev subdomain. |
 | **OQ-7** | **No résumé on the site (NEW, v1.5).** Owner decision, 2026-09-26: the résumé is not published here. The work history lives on LinkedIn (kept current by the owner, off-site, no staleness debt); the About page carries the authored judgment signal; GitHub carries the output. No résumé page, no PDF, no ProfilePage JSON-LD, no `resume` template enum value. | §4.1 scope cap drops to three surfaces. §5.2/RES-1..5, SEO-2, DEP-7, US-5..7 tombstoned; RES-X1..X4 and US-15/US-16 added as the removal's real obligations. Tickets T-9, T-14, T-24 **retired**; `T-25`..`T-28` delete the already-shipped résumé code **before** the first deploy (`T-19`), so the résumé is never publicly live. Any future return is a separate project (§7, §11.1). |
+| **OQ-8** | **Deploy platform correction (NEW, v1.6).** Owner decisions, 2026-09-27, after T-19 failed on the Pages→Workers merge: (a) canonical host **`https://www.mattoconn.workers.dev`**: rename the account workers.dev subdomain `mattgoconn` → `mattoconn` and name the Worker `www`; (b) **delete** the half-configured `personal-website` Worker rather than reuse it (done by the planner the same day with `wrangler delete`, so no push can rebuild it); (c) noindex non-canonical hosts with a **host-matched `_headers` rule** derived from the canonical host, identical on every build, replacing `CF_PAGES_BRANCH` detection. Rejected: swapping to `WORKERS_CI_BRANCH` (leaves production version/deployment URLs indexable), relying only on Cloudflare's automatic Preview-URL noindex (a week-old beta; coverage of version/deployment URLs unconfirmed), and buying a custom domain (reverses §4.4). | DEP-1, DEP-5 rewritten; DEP-8 added; SEO-12 note, §9, US-14 amended. `T-19` rewritten; `T-29` and `T-30` added ahead of it. Production builds now **ship** a `_headers` file, reversing the v1.5 "no `_headers` on production" invariant; the invariant that matters, "the canonical host never receives `noindex`", is kept and now checked directly. |
 
 ### 11.1 Follow-on Projects (not this project)
 
@@ -345,6 +372,7 @@ Derived from the three target personas in the vision document:
 | 1.3 | 2026-09-21 | Project Planner | Extensibility wording aligned with implemented mechanism (REG-6/US-9/§8): the content file *is* the registration entry (frontmatter drives the registry); a per-section template component is also required. Zero nav/layout/sitemap/schema changes unchanged. |
 | 1.4 | 2026-09-25 | Project Planner | Scope framing only — no requirement added, removed, or reworded. Named the project `initial-site`; retitled §7 and §11.1 so deferred capabilities are separate project directories under `projects/`, not phases of this one. Ticket scope unchanged. |
 | **1.5** | **2026-09-26** | **Project Planner** | **Scope reduction — résumé surface removed (owner decision, PRD OQ-7).** Four surfaces → **three** (Home, About, Section Registry). **Removed:** `RES-1`..`RES-5` (§5.2 tombstoned), `SEO-2` (ProfilePage JSON-LD), `DEP-7` (`/resume.pdf` cache headers), `US-5`/`US-6`/`US-7`; `OQ-1` and `OQ-4` superseded. **Added:** `RES-X1`..`RES-X4` (the removal's real obligations — no residue, no dead links, no orphaned header rule, Person JSON-LD survives), `US-15`/`US-16` (routing replaces hosting the résumé), §7/§9/§11.1 out-of-scope + cancelled rows, and two new §8 metrics. §3 hiring-manager persona re-pointed at About + LinkedIn + GitHub. **IDs tombstoned, never renumbered** — every ticket/design `§`-reference stays valid. Ticket impact: `T-9`/`T-14`/`T-24` retired; `T-25`..`T-28` added and sequenced **before** the first deploy (`T-19`). |
+| **1.6** | **2026-09-27** | **Project Planner** | **Deploy platform correction (OQ-8).** Cloudflare Pages is now part of Workers; T-19 failed when Workers Builds auto-installed the SSR adapter. DEP-1 → Cloudflare Workers static assets + Workers Builds; DEP-5 → `www.mattoconn.workers.dev`; new DEP-8 (assets-only Worker, committed `wrangler.jsonc`, no adapter); SEO-12 mechanism → host-matched `_headers`; §1, §4.4, §9, NF-6, US-14, OQ-6 amended. No ID removed or renumbered. Ticket impact: `T-19` rewritten, `T-29`/`T-30` added before it. |
 
 ---
 
