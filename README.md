@@ -1,6 +1,6 @@
 # personal-website
 
-Personal portfolio/about site built with [Astro](https://astro.build). Fully static output, deployed to Cloudflare Pages. Ships no client-side JavaScript; the only script tag is a JSON-LD data block.
+Personal portfolio/about site built with [Astro](https://astro.build). Fully static output, deployed as a [Cloudflare Workers static-assets](https://developers.cloudflare.com/workers/static-assets/) site (no Worker script, no server runtime). Ships no client-side JavaScript; the only script tag is a JSON-LD data block.
 
 ## Overview
 
@@ -28,3 +28,21 @@ See `.env.example` for details.
 
 - **`PUBLIC_SITE_URL`** overrides the canonical host (default `https://www.mattoconn.workers.dev`). It drives every absolute URL: canonical links, sitemap, `robots.txt` sitemap line, JSON-LD, and the allowed origin in `npm run verify`. Set it only to build against a different domain.
 - `gen-headers.mjs` writes `dist/_headers` with a host-matched `X-Robots-Tag: noindex` rule derived from the canonical host in `dist/robots.txt` — no environment variable is involved, and the output is identical on every build (production, preview, or local).
+
+## Deployment
+
+Deployed as a Cloudflare Workers **static-assets-only** site (Worker `www`), configured by the
+committed `wrangler.jsonc` at the repo root. There is deliberately no `"main"` entry, no
+`@astrojs/cloudflare` adapter, and no server runtime — Wrangler serves `dist/` directly.
+
+- Git push to `main` triggers a Workers Builds run: build command `npm run build`, deploy command
+  `npx wrangler deploy`. There is no separate CI-gate step; `npm run build` already runs
+  `scripts/verify-static.mjs` before the deploy step can run.
+- No build variables are set for the project. `PUBLIC_SITE_URL` is intentionally left unset so the
+  committed default (the canonical host) is always used; see `.env.example`.
+- Local deploy dry run: `npx wrangler deploy --dry-run` builds the upload plan without publishing.
+- Local runtime check: `npx wrangler dev --port 8787` serves `dist/` the same way Workers does in
+  production (404 page on unmatched paths, `/about` → `/about/` redirect).
+- `wrangler` is a pinned `devDependency` (not an ad-hoc `npx` download), so Workers Builds and any
+  local `npx wrangler …` invocation resolve the same version.
+- Rollback: `npx wrangler rollback` restores the previous version.

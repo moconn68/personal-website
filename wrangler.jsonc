@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Static-assets-only Worker (PRD DEP-8). There is deliberately NO "main":
+  // no Worker script, no @astrojs/cloudflare adapter, no server runtime (NF-6).
+  "name": "www",
+  "compatibility_date": "2026-09-27",
+  // Canonical host https://www.mattoconn.workers.dev (PRD DEP-5).
+  "workers_dev": true,
+  // Preview/Version URLs stay on; dist/_headers noindexes all of them (§10.1).
+  "preview_urls": true,
+  "assets": {
+    "directory": "./dist",
+    // Unmatched URLs serve dist/404.html with status 404 (T-11's page).
+    // Without this, Workers returns a bare 404 and the custom page never shows.
+    "not_found_handling": "404-page",
+    // Default, stated explicitly: /about -> /about/ redirect, matching
+    // trailingSlash: 'always' and build.format: 'directory' (R8).
+    "html_handling": "auto-trailing-slash"
+  }
+}
