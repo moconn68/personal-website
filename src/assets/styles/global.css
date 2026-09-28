@@ -4,22 +4,26 @@
    this file is global only.
    @font-face blocks: self-hosted subsets, font-display: swap. */
 
-/* Self-hosted IBM Plex Sans subsets (see scripts/subset-fonts.mjs).
+/* Self-hosted subsets of IBM Plex Sans (see scripts/subset-fonts.mjs and
+   scripts/font-src/OFL.txt for license + attribution). Served under the
+   'Site Sans' family name rather than 'IBM Plex Sans': the OFL reserves the
+   name "Plex" for the Copyright Holder's own (unmodified) distributions, and
+   these files are subsetted derivatives.
    font-display: swap = content-first; system-ui fallbacks downstream
    in --font-sans cover any glyph the subset omits. */
 @font-face {
-  font-family: 'IBM Plex Sans';
+  font-family: 'Site Sans';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../fonts/ibm-plex-sans-400.woff2') format('woff2');
+  src: url('../fonts/site-sans-400.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'IBM Plex Sans';
+  font-family: 'Site Sans';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('../fonts/ibm-plex-sans-600.woff2') format('woff2');
+  src: url('../fonts/site-sans-600.woff2') format('woff2');
 }
 
 :root {
@@ -33,7 +37,7 @@
   --color-surface: #ffffff;
 
   /* typography scale */
-  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Site Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --fs-hero: clamp(2rem, 1.5rem + 2.6vw, 3.25rem);
   --fs-h2: clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem);
   --fs-lead: clamp(1.0625rem, 1.0rem + 0.4vw, 1.25rem);
@@ -73,7 +77,7 @@ html {
 
 body {
   margin: 0;
-  font-family: var(--font-sans, 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+  font-family: var(--font-sans, 'Site Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
   font-size: var(--fs-body, 1rem);
   line-height: var(--lh-body, 1.6);
   color: var(--color-text, #18181b);

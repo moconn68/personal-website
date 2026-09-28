@@ -12,6 +12,12 @@
 // scripts/font-src/ so subsetting is hermetic/repeatable. They are licensed
 // under the SIL Open Font License 1.1 (scripts/font-src/OFL.txt), which also
 // covers the subsetted WOFF2 derivatives.
+//
+// Output filenames avoid "plex": the OFL reserves the name "Plex" for the
+// Copyright Holder's own distributions (clause 3), and these are modified
+// (subsetted) derivatives served under the 'Site Sans' family name in
+// global.css. Attribution to IBM Plex Sans stays in this comment, the OFL
+// file, and the README.
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import subsetFont from 'subset-font';
@@ -21,8 +27,8 @@ const OUT_DIR = resolve(import.meta.dirname, '../src/assets/fonts');
 const DIST_DIR = resolve(import.meta.dirname, '../dist');
 
 const pinnedOutputs = {
-  'IBMPlexSans-Regular.ttf': 'ibm-plex-sans-400.woff2',
-  'IBMPlexSans-SemiBold.ttf': 'ibm-plex-sans-600.woff2',
+  'IBMPlexSans-Regular.ttf': 'site-sans-400.woff2',
+  'IBMPlexSans-SemiBold.ttf': 'site-sans-600.woff2',
 };
 
 // Every build emits the home page; its absence means dist/ is not a complete build.
