@@ -18,6 +18,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 - Projects page is now a ledger: rows grouped by year with date, stack line, text-link actions, and a square-cornered thumbnail.
 - Home page is now a datasheet: large name, one-line role, a specifications table with GitHub, LinkedIn, and About links, and the three newest projects. The icon link chips are gone.
 - Project write-ups now follow the datasheet layout: a details table (published date with reading time, stack, live link), numbered sections and figure captions, and square-cornered images.
+- About page gains a specifications table (education, location, favorite language, off the clock) and the 404 page is now an error-code entry with text links home and to Projects.
+- The highlight behind the home role line is stronger in dark mode.
 - Footer is now a revision block showing the copyright and the site version.
 
 ## [1.1.1] - 2026-09-29

@@ -60,6 +60,7 @@
   --color-accent: #1b6440; /* signal */
   --color-accent-hover: #14502f;
   --color-led: #2fa36b; /* decorative indicator only, never text */
+  --color-highlight: color-mix(in srgb, var(--color-accent) 18%, transparent); /* marker behind emphasised text */
 
   /* typography scale */
   --font-sans: 'Site Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -100,6 +101,7 @@
     --color-accent: #86c9a0;
     --color-accent-hover: #a8dcbb;
     --color-led: #4cc584;
+    --color-highlight: color-mix(in srgb, var(--color-accent) 30%, transparent);
   }
 }
 

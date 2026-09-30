@@ -4,6 +4,15 @@ title: About
 navLabel: About
 order: 2
 template: about
+specs:
+  - label: Education
+    value: "Computer engineering, Villanova University"
+  - label: Based
+    value: "Bay Area, California"
+  - label: Favorite language
+    value: "Rust"
+  - label: Off the clock
+    value: "Gym, climbing, dodgeball, books, travel"
 description: "Bay Area software engineer building systems for consumer devices; outside work, gym, gaming, and travel."
 ---
 

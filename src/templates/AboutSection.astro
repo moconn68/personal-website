@@ -3,12 +3,13 @@
 // markdown body via render(entry) → <Content /> inside a semantic <article>.
 // Warm, personal, readable — no structural assumptions about paragraph
 // count/voice (copy is owner-supplied content; the template must not invent
-// content). h1 = registry title at --fs-h2;
+// content). h1 = registry title in the display face, then a spec table from `specs` frontmatter;
 // prose at --fs-body / --lh-body capped at --measure (65ch); paragraphs spaced
 // with --space-5. Zero client JS.
 // Props contract: entry + full ordered registry.
 import { render } from 'astro:content';
 import { type SectionEntry } from '../config/sections';
+import SpecTable from '../components/SpecTable.astro';
 
 interface Props {
   entry: SectionEntry;
@@ -16,11 +17,13 @@ interface Props {
 }
 
 const { entry } = Astro.props;
+const specs = entry.data.specs ?? [];
 const { Content } = await render(entry);
 ---
 
 <article class="about">
   <h1>{entry.data.title}</h1>
+  {specs.length > 0 && <SpecTable rows={specs} caption="About at a glance" />}
   <div class="about-body">
     <Content />
   </div>
@@ -33,11 +36,15 @@ const { Content } = await render(entry);
     padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
   }
 
-  /* h1 at --fs-h2, weight 600. */
+  /* h1 in the display face at the same size as the Projects h1. */
   .about h1 {
-    font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
-    line-height: var(--lh-h2, 1.2);
-    margin-block-end: var(--space-5, 1.5rem);
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+  }
+
+  .about :global(.spec) {
+    margin-block: var(--space-5);
+    border-top: 1px solid var(--color-text);
   }
 
   /* Rendered markdown body: --fs-body 400, --lh-body 1.6, max 65ch for
