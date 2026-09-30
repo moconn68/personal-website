@@ -6,6 +6,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-09-29
+
 ### Fixed
 
 - Text no longer flickers or reflows when navigating between pages: the site
