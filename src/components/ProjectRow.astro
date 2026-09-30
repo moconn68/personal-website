@@ -1,0 +1,144 @@
+---
+// One ledger row in the projects list: date, title/summary/stack/actions, and a
+// 4:3 thumbnail. `headingLevel` lets the row sit under an h2 (h3) or directly
+// under the page h1 (h2). `compact` hides the actions row (home page).
+import { Image } from 'astro:assets';
+import type { ProjectEntry } from '../config/projects';
+
+interface Props {
+  project: ProjectEntry;
+  href: string;
+  headingLevel?: 'h2' | 'h3';
+  compact?: boolean;
+}
+
+const { project, href, headingLevel = 'h3', compact = false } = Astro.props;
+const Heading = headingLevel;
+const { title, summary, date, tags, cover, liveUrl } = project.data;
+const iso = date.toISOString().slice(0, 7);
+---
+
+<article class="row">
+  <time class="date" datetime={iso}>{iso}</time>
+  <div class="body">
+    <Heading>
+      <a href={href}>{title}</a>
+    </Heading>
+    <p class="summary">{summary}</p>
+    <ul class="stack" aria-label="Technologies">
+      {tags.map((tag) => <li>{tag.toLowerCase()}</li>)}
+    </ul>
+    {
+      !compact && (
+        <div class="acts">
+          <a href={href}>
+            Read the write-up <span aria-hidden="true">→</span>
+          </a>
+          {liveUrl && (
+            <a href={liveUrl} target="_blank" rel="noopener noreferrer">
+              Open {title} <span aria-hidden="true">↗</span>
+              <span class="visually-hidden"> (opens in new tab)</span>
+            </a>
+          )}
+        </div>
+      )
+    }
+  </div>
+  <a class="thumb" href={href} tabindex="-1" aria-hidden="true">
+    <Image src={cover} alt="" widths={[220, 440]} sizes="(min-width: 40rem) 11rem, 100vw" loading="lazy" />
+  </a>
+</article>
+
+<style>
+  .row {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) 11rem;
+    gap: var(--space-2) var(--space-5);
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--color-rule-soft);
+    align-items: start;
+  }
+
+  .date {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    padding-top: 0.3rem;
+  }
+
+  .body h2,
+  .body h3 {
+    font-size: 1.5rem;
+  }
+
+  .summary {
+    margin: 0.3rem 0 0;
+  }
+
+  .stack {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  .stack li + li::before {
+    content: '/';
+    margin-inline: 0.5ch;
+  }
+
+  .acts {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--space-5);
+    margin-top: var(--space-2);
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  .acts a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4ch;
+    min-height: var(--touch-min);
+  }
+
+  .thumb {
+    display: block;
+    border: 1px solid var(--color-border);
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 40rem) {
+    .row {
+      grid-template-columns: 1fr;
+    }
+    .thumb {
+      order: -1;
+    }
+  }
+</style>
