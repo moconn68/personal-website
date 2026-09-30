@@ -34,6 +34,7 @@ const sections = defineCollection({
       description: z.string().trim().min(1).max(160), // doubles as meta description; ≤160 is enforced at the boundary
       github: githubUrl.optional(), // home-only
       linkedin: linkedinUrl.optional(), // home-only
+      specs: z.array(z.object({ label: z.string().trim().min(1), value: z.string().trim().min(1) })).optional(), // home-only
     })
     // Per-entry invariants. Cross-entry ones (exactly one home, unique
     // slug/order) live in getSections() in src/config/sections.ts.
@@ -48,7 +49,7 @@ const sections = defineCollection({
         });
       }
       if (!isHomeSlug) {
-        for (const key of ['github', 'linkedin'] as const) {
+        for (const key of ['github', 'linkedin', 'specs'] as const) {
           if (data[key] !== undefined) {
             ctx.addIssue({ code: 'custom', path: [key], message: `${key} is only allowed on the home section` });
           }

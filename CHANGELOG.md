@@ -15,6 +15,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 - New type system and palette: IBM Plex Sans Condensed headings, IBM Plex Mono for code, and a paper, ink, and green accent color scheme.
 - Header is now a condensed wordmark with lowercase mono navigation; the current section shows a filled LED marker.
 - Projects page is now a ledger: rows grouped by year with date, stack line, text-link actions, and a square-cornered thumbnail.
+- Home page is now a datasheet: large name, one-line role, a specifications table with GitHub, LinkedIn, and About links, and the three newest projects. The icon link chips are gone.
 - Footer is now a revision block showing the copyright and the site version.
 
 ## [1.1.1] - 2026-09-29
