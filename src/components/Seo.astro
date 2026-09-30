@@ -1,7 +1,7 @@
 ---
 // SEO head component. Composes into BaseLayout's `<slot name="head" />`:
 // unique page <title>, ≤160-char meta description, Open Graph tags
-// (og:title/og:description/og:type=website/og:url), and a self-referencing
+// (og:title/og:description/og:type=website (article for project posts)/og:url), and a self-referencing
 // absolute canonical computed from SITE_URL. One canonical host — preview hosts
 // emit cross-host canonicals pointing at the production site (correct; previews
 // are additionally noindexed by the generated _headers rule). Canonical href
@@ -14,11 +14,13 @@ interface Props {
   description: string;
   /** Relative page path with trailing slash — sectionPath(entry), e.g. '/', '/about/'. */
   path: string;
+  /** Open Graph type; 'website' for section pages, 'article' for project posts. */
+  type?: 'website' | 'article';
 }
 
 import { absoluteUrl } from '../config/site';
 
-const { title, description, path } = Astro.props;
+const { title, description, path, type = 'website' } = Astro.props;
 const url = absoluteUrl(path);
 ---
 
@@ -27,7 +29,7 @@ const url = absoluteUrl(path);
   <meta name="description" content={description} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content={type} />
   <meta property="og:url" content={url} />
   <link rel="canonical" href={url} />
 </Fragment>

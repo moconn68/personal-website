@@ -1,0 +1,199 @@
+---
+// Projects index template. Renders the section's markdown intro, then one
+// card per entry in the `projects` collection (newest first): cover image,
+// title, one-line summary, tech tags, and links to the detail post and the
+// live site. Adding a project is a new file in src/content/projects/ and
+// nothing else. Zero client JS; images are optimized by astro:assets at build.
+// Props contract: entry + full ordered registry.
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import { type SectionEntry } from '../config/sections';
+import { getProjects, projectPath } from '../config/projects';
+
+interface Props {
+  entry: SectionEntry;
+  sections: SectionEntry[];
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const projects = await Promise.all(
+  (await getProjects()).map(async (project) => ({ project, href: await projectPath(project) })),
+);
+---
+
+<section class="projects">
+  <h1>{entry.data.title}</h1>
+  <div class="intro">
+    <Content />
+  </div>
+  <ul class="cards">
+    {
+      projects.map(({ project, href }) => (
+        <li class="card">
+          <a class="cover" href={href} tabindex="-1" aria-hidden="true">
+            <Image
+              src={project.data.cover}
+              alt=""
+              widths={[400, 640, 800]}
+              sizes="(min-width: 48rem) 43rem, 100vw"
+              loading="lazy"
+            />
+          </a>
+          <div class="card-body">
+            <h2>
+              <a href={href}>{project.data.title}</a>
+            </h2>
+            <p class="summary">{project.data.summary}</p>
+            <ul class="tags" aria-label="Technologies">
+              {project.data.tags.map((tag) => (
+                <li>{tag}</li>
+              ))}
+            </ul>
+            <div class="links">
+              <a class="link-chip" href={href}>
+                Read the write-up
+              </a>
+              {project.data.liveUrl && (
+                <a class="link-chip" href={project.data.liveUrl} target="_blank" rel="noopener noreferrer">
+                  Open {project.data.title}
+                  <span class="visually-hidden"> (opens in new tab)</span>
+                </a>
+              )}
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .projects {
+    padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
+  }
+
+  .projects h1 {
+    font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
+    line-height: var(--lh-h2, 1.2);
+    margin-block-end: var(--space-5, 1.5rem);
+  }
+
+  .intro {
+    max-width: var(--measure, 65ch);
+  }
+
+  .intro :global(p) {
+    margin: 0;
+  }
+
+  .cards {
+    list-style: none;
+    margin: var(--space-6, 2rem) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6, 2rem);
+  }
+
+  .card {
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e4e4e7);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .cover,
+  .cover :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3, 0.75rem);
+    padding: var(--space-5, 1.5rem);
+  }
+
+  .card h2 {
+    font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
+  }
+
+  .card h2 a {
+    color: var(--color-text, #18181b);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .card h2 a:hover {
+    color: var(--color-accent-hover, #172554);
+    text-decoration-thickness: 2px;
+  }
+
+  .summary {
+    margin: 0;
+    max-width: var(--measure, 65ch);
+  }
+
+  .tags {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2, 0.5rem);
+  }
+
+  .tags li {
+    font-size: var(--fs-small, 0.875rem);
+    color: var(--color-muted, #52525b);
+    padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+    border: 1px solid var(--color-border, #e4e4e7);
+    border-radius: 999px;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3, 0.75rem);
+    margin-block-start: var(--space-2, 0.5rem);
+  }
+
+  .link-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min, 44px);
+    min-width: var(--touch-min, 44px);
+    padding-inline: var(--space-4, 1rem);
+    font-weight: 600;
+    color: var(--color-text, #18181b);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e4e4e7);
+    border-radius: 8px;
+  }
+
+  .link-chip:hover {
+    color: var(--color-accent-hover, #172554);
+    border-color: var(--color-accent, #1e40af);
+    text-decoration-thickness: 2px;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

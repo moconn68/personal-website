@@ -57,4 +57,25 @@ const sections = defineCollection({
     }),
 });
 
-export const collections = { sections };
+// Blog-style project write-ups. The entry id (filename) is the URL slug under
+// the Projects section: src/content/projects/murmur.md -> /projects/murmur/.
+// Cover images are validated and optimized by Astro via the image() helper.
+const projects = defineCollection({
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/content/projects',
+    generateId: ({ entry }) => entry.replace(/\.md$/, ''),
+  }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string().trim().min(1),
+      summary: z.string().trim().min(1).max(160), // card line and meta description
+      date: z.coerce.date(),
+      tags: z.array(z.string().trim().min(1)).min(1),
+      cover: image(),
+      coverAlt: z.string().trim().min(1),
+      liveUrl: z.url({ protocol: /^https$/ }).optional(),
+    }),
+});
+
+export const collections = { sections, projects };

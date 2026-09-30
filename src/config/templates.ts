@@ -6,7 +6,7 @@
 // unimplemented template would otherwise pass schema validation and only fail
 // later during route dispatch. When adding a template component, add its
 // name here too.
-export const TEMPLATES = ['home', 'about'] as const;
+export const TEMPLATES = ['home', 'about', 'projects'] as const;
 export type Template = (typeof TEMPLATES)[number];
 
 /** 'home' → 'HomeSection', 'about' → 'AboutSection', ... */
