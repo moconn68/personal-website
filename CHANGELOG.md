@@ -6,6 +6,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 
 ## [Unreleased]
 
+### Fixed
+
+- Text no longer flickers or reflows when navigating between pages: the site
+  fonts are now preloaded, and hashed build assets (`/_astro/*`) are cached
+  long-term instead of being revalidated on every navigation.
+
 ## [1.1.0] - 2026-09-29
 
 ### Added

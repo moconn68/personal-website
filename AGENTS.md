@@ -44,7 +44,7 @@ Consult these guides before working on related tasks:
 - `name` in `wrangler.jsonc` must exactly match the Worker name in the Cloudflare dashboard (`www`), or Workers Builds refuses to build.
 - Noindex non-canonical hosts by hostname, not by branch. Branch detection misses each production deploy's own Version and Deployment URLs, and a path-only `/*` rule in `_headers` would also noindex the canonical host.
 - Host-matched `_headers` rules never fire under `wrangler dev` (localhost). Test them on a real Version URL from `npx wrangler versions upload`.
-- `_headers` is checked byte-for-byte against `noindexHeadersFor()` in `scripts/verify-static.mjs`. Any new rule (e.g. a cache header) means editing `scripts/noindex-rule.mjs` and `scripts/verify-static.mjs` together.
+- `_headers` is checked byte-for-byte against `headersFor()` in `scripts/verify-static.mjs`. Any new rule means editing `scripts/noindex-rule.mjs` and `scripts/verify-static.mjs` together.
 - `scripts/verify-static.mjs` requires exactly one JSON-LD block on `/`. Adding a `WebSite` or `BreadcrumbList` node fails with the misleading message "structured data lost"; relax that check first.
 - The retired-path gate in `scripts/verify-static.mjs` fails on any `/resume` URL, including outbound links (e.g. `github.com/x/resume`).
 - Deleting a section means deleting its content `.md` file. A leftover template `.astro` file is harmless; a content file whose template is gone fails the build.

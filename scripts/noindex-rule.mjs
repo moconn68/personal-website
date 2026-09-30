@@ -1,5 +1,5 @@
 // Pure and dependency-free. Shared by gen-headers.mjs (writer) and
-// verify-static.mjs (gate) so the noindex rule is defined exactly once.
+// verify-static.mjs (gate) so every `_headers` rule is defined exactly once.
 //
 // Every non-canonical host of a Workers static-assets site is a workers.dev
 // hostname: Preview, Deployment, and Version URLs are all
@@ -16,8 +16,8 @@ export function canonicalOriginFromRobots(robotsText) {
   return new URL(url).origin;
 }
 
-/** The exact dist/_headers body for a canonical https origin. */
-export function noindexHeadersFor(origin) {
+/** The host-matched noindex rule for a canonical https origin. */
+export function noindexRuleFor(origin) {
   const { protocol, host } = new URL(origin);
   if (protocol !== 'https:') throw new Error(`canonical origin must be https: ${origin}`);
   const m = WORKERS_DEV_HOST.exec(host);
@@ -28,6 +28,20 @@ export function noindexHeadersFor(origin) {
     : // Canonical elsewhere (future custom domain): every workers.dev host is a duplicate.
       'https://:worker.:account.workers.dev/*';
   return `${pattern}\n  X-Robots-Tag: noindex\n`;
+}
+
+/**
+ * Long-lived caching for content-hashed build output. Astro names everything in
+ * /_astro/* by content hash, so a changed file gets a new URL and the old one
+ * can be cached forever. Without this, Cloudflare's default
+ * `max-age=0, must-revalidate` forces every navigation to revalidate the fonts,
+ * and text paints in the fallback font first (FOUT). HTML stays revalidated.
+ */
+export const CACHE_RULE = '/_astro/*\n  Cache-Control: public, max-age=31536000, immutable\n';
+
+/** The exact dist/_headers body for a canonical https origin. */
+export function headersFor(origin) {
+  return `${noindexRuleFor(origin)}\n${CACHE_RULE}`;
 }
 
 /**

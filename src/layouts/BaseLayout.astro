@@ -10,6 +10,9 @@
 import Nav from '../components/Nav.astro';
 import { getSections } from '../config/sections';
 import '../assets/styles/global.css';
+// Hashed URLs via ?url match the @font-face url() in global.css exactly.
+import font400 from '../assets/fonts/site-sans-400.woff2?url';
+import font600 from '../assets/fonts/site-sans-600.woff2?url';
 
 const sections = await getSections();
 const home = sections.find((entry) => entry.data.slug === 'home');
@@ -25,6 +28,9 @@ const year = new Date().getFullYear();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* Preload both weights so text never paints in the fallback font first. */}
+    <link rel="preload" href={font400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={font600} as="font" type="font/woff2" crossorigin />
     {/* Per-route <title>/meta/canonical land here via the head slot (Seo). */}
     <slot name="head" />
   </head>
