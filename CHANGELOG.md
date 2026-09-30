@@ -11,6 +11,10 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 - Dark mode that follows the system color-scheme setting.
 - Project write-ups show a sticky, numbered contents list beside the text on wide screens.
 
+### Security
+
+- Updated the Wrangler deploy tooling (4.142 to 4.145) to pull in a patched `undici`, fixing one high and two moderate advisories. The built site is unchanged.
+
 ### Changed
 
 - New type system and palette: IBM Plex Sans Condensed headings, IBM Plex Mono for code, and a paper, ink, and green accent color scheme.
