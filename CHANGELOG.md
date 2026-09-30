@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+## [1.1.0] - 2026-09-29
+
+### Added
+
+- Projects section at `/projects/`: a registry-driven index template listing
+  project cards (title, summary, tech tags, cover image, live-site and
+  write-up links), linked from the nav.
+- `projects` content collection (`src/content/projects/*.md`, Zod schema) and
+  a `/projects/[slug]/` route that renders each entry as a blog-style post.
+  Adding a project is one Markdown file; posts are included in the sitemap.
+- First project write-up, Murmur (`/projects/murmur/`), with optimized
+  screenshots and an architecture diagram, linking to the live instrument at
+  `https://murmur.mattoconn.workers.dev`.
+
+### Changed
+
+- Nav marks a parent section as current (`aria-current`) on nested pages such
+  as `/projects/murmur/`.
+- The SEO head component accepts an optional Open Graph type; project posts
+  emit `og:type=article`.
+
 ## [1.0.0] - 2026-09-27
 
 First public release of the personal identity hub for Matthew O'Connell.
