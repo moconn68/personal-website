@@ -11,6 +11,7 @@ import { sectionPath, type SectionEntry } from '../config/sections';
 import { getProjects, projectPath } from '../config/projects';
 import JsonLdPerson from '../components/JsonLdPerson.astro';
 import ProjectRow from '../components/ProjectRow.astro';
+import SpecTable from '../components/SpecTable.astro';
 
 interface Props {
   entry: SectionEntry;
@@ -41,18 +42,8 @@ const recent = await Promise.all(
   <div class="sechead">
     <h2 id="specs-heading">Specifications</h2>
   </div>
-  <table class="spec">
-    <caption class="visually-hidden">Specifications</caption>
-    <tbody>
-      {
-        specs.map((spec) => (
-          <tr>
-            <th scope="row">{spec.label}</th>
-            <td>{spec.value}</td>
-          </tr>
-        ))
-      }
-      <tr class="elsewhere">
+  <SpecTable rows={specs} caption="Specifications">
+      <tr class="action">
         <th scope="row">Elsewhere</th>
         <td>
           <div class="links">
@@ -82,8 +73,7 @@ const recent = await Promise.all(
           </div>
         </td>
       </tr>
-    </tbody>
-  </table>
+  </SpecTable>
 </section>
 
 {
@@ -164,35 +154,6 @@ const recent = await Promise.all(
     margin-block: -0.6rem;
   }
 
-  .spec {
-    width: 100%;
-    border-collapse: collapse;
-    margin-block-start: var(--space-1);
-  }
-
-  .spec th,
-  .spec td {
-    text-align: left;
-    vertical-align: top;
-    padding: 0.55rem 0.75rem 0.55rem 0;
-    border-bottom: 1px solid var(--color-rule-soft);
-  }
-
-  .spec th {
-    width: 8.5rem;
-    font-family: var(--font-mono);
-    font-weight: 400;
-    font-size: 0.8125rem;
-    color: var(--color-muted);
-    padding-top: 0.7rem;
-  }
-
-  .elsewhere th,
-  .elsewhere td {
-    vertical-align: middle;
-    padding-block: 0;
-  }
-
   .links {
     display: flex;
     flex-wrap: wrap;
@@ -219,9 +180,4 @@ const recent = await Promise.all(
     border: 0;
   }
 
-  @media (max-width: 40rem) {
-    .spec th {
-      width: 6.5rem;
-    }
-  }
 </style>

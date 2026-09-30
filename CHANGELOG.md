@@ -9,6 +9,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 ### Added
 
 - Dark mode that follows the system color-scheme setting.
+- Project write-ups show a sticky, numbered contents list beside the text on wide screens.
 
 ### Changed
 
@@ -16,6 +17,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 - Header is now a condensed wordmark with lowercase mono navigation; the current section shows a filled LED marker.
 - Projects page is now a ledger: rows grouped by year with date, stack line, text-link actions, and a square-cornered thumbnail.
 - Home page is now a datasheet: large name, one-line role, a specifications table with GitHub, LinkedIn, and About links, and the three newest projects. The icon link chips are gone.
+- Project write-ups now follow the datasheet layout: a details table (published date with reading time, stack, live link), numbered sections and figure captions, and square-cornered images.
 - Footer is now a revision block showing the copyright and the site version.
 
 ## [1.1.1] - 2026-09-29

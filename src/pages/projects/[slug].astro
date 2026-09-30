@@ -8,6 +8,7 @@ import { Image } from 'astro:assets';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Seo from '../../components/Seo.astro';
+import SpecTable from '../../components/SpecTable.astro';
 import { getSections, sectionPath } from '../../config/sections';
 import { getProjects, projectPath } from '../../config/projects';
 
@@ -24,152 +25,161 @@ if (!home || !index) throw new Error('Registry must contain "home" and a "projec
 
 const title = `${home.data.title} — ${project.data.title}`;
 const path = await projectPath(project);
-const { Content } = await render(project);
+const { Content, headings } = await render(project);
+const toc = headings.filter((h) => h.depth === 2);
 const published = project.data.date.toISOString().slice(0, 10);
-const dateLabel = project.data.date.toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  timeZone: 'UTC',
-});
+const minutes = Math.max(1, Math.ceil((project.body ?? '').split(/\s+/).filter(Boolean).length / 230));
+const stack = project.data.tags.map((tag) => tag.toLowerCase()).join(' / ');
+const liveUrl = project.data.liveUrl;
+const liveHost = liveUrl ? new URL(liveUrl).hostname : undefined;
 ---
 
 <BaseLayout>
   <Fragment slot="head">
     <Seo title={title} description={project.data.summary} path={path} type="article" />
   </Fragment>
-  <article class="post">
-    <p class="crumb"><a href={sectionPath(index)}>&larr; {index.data.title}</a></p>
-    <h1>{project.data.title}</h1>
-    <p class="meta">
-      <time datetime={published}>{dateLabel}</time>
-    </p>
-    <ul class="tags" aria-label="Technologies">
-      {project.data.tags.map((tag) => <li>{tag}</li>)}
-    </ul>
-    {
-      project.data.liveUrl && (
-        <p class="cta">
-          <a class="link-chip" href={project.data.liveUrl} target="_blank" rel="noopener noreferrer">
-            Open {project.data.title}
-            <span class="visually-hidden"> (opens in new tab)</span>
-          </a>
-        </p>
-      )
-    }
+  <article class:list={['post', { 'has-toc': toc.length > 0 }]}>
+    <header class="head">
+      <p class="crumb"><a href={sectionPath(index)}>&larr; {index.data.title}</a></p>
+      <h1>{project.data.title}</h1>
+      <p class="deck">{project.data.summary}</p>
+      <SpecTable
+        caption="Project details"
+        rows={[
+          { label: 'Published', value: published, datetime: published, suffix: `${minutes} min read`, mono: true },
+          { label: 'Stack', value: stack, mono: true },
+        ]}
+      >
+        {
+          liveUrl && (
+            <tr class="action">
+              <th scope="row">Live</th>
+              <td>
+                <a class="live" href={liveUrl} target="_blank" rel="noopener noreferrer">
+                  {liveHost} <span aria-hidden="true">↗</span>
+                  <span class="visually-hidden"> (opens in new tab)</span>
+                </a>
+              </td>
+            </tr>
+          )
+        }
+      </SpecTable>
+    </header>
     <Image
       class="hero-img"
       src={project.data.cover}
       alt={project.data.coverAlt}
       widths={[480, 800, 1200]}
-      sizes="(min-width: 48rem) 43rem, 100vw"
+      sizes="(min-width: 68.75rem) 47rem, (min-width: 48rem) 43rem, 100vw"
       loading="eager"
     />
     <div class="post-body">
       <Content />
     </div>
+    {
+      toc.length > 0 && (
+        <aside class="toc" aria-label="Contents">
+          <p class="toc-label">Contents</p>
+          <ol>
+            {toc.map((h) => (
+              <li>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )
+    }
   </article>
 </BaseLayout>
 
 <style>
   .post {
-    padding-block: clamp(2rem, 6vh, 4rem) var(--space-7, 3rem);
+    padding-block: clamp(2rem, 6vh, 4rem) var(--space-7);
   }
 
   .crumb {
-    margin: 0 0 var(--space-4, 1rem);
-    font-size: var(--fs-small, 0.875rem);
-  }
-
-  .crumb a {
-    color: var(--color-accent, #1e40af);
-    text-underline-offset: 3px;
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
   }
 
   .post h1 {
-    font-size: var(--fs-hero, clamp(2rem, 1.5rem + 2.6vw, 3.25rem));
-    line-height: var(--lh-hero, 1.05);
+    font-size: clamp(2.25rem, 1.5rem + 3.2vw, 3.5rem);
+    line-height: 1;
   }
 
-  .meta {
-    margin: var(--space-2, 0.5rem) 0 var(--space-3, 0.75rem);
-    font-size: var(--fs-small, 0.875rem);
-    color: var(--color-muted, #52525b);
+  .deck {
+    margin: var(--space-3) 0 0;
+    max-width: 48ch;
+    font-size: 1.1875rem;
+    color: var(--color-muted);
   }
 
-  .tags {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2, 0.5rem);
+  .head :global(.spec) {
+    margin-block-start: var(--space-5);
+    border-top: 1px solid var(--color-text);
   }
 
-  .tags li {
-    font-size: var(--fs-small, 0.875rem);
-    color: var(--color-muted, #52525b);
-    padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
-    border: 1px solid var(--color-border, #e4e4e7);
-    border-radius: 999px;
-  }
-
-  .cta {
-    margin: var(--space-4, 1rem) 0 0;
-  }
-
-  .link-chip {
+  .live {
     display: inline-flex;
     align-items: center;
-    min-height: var(--touch-min, 44px);
-    min-width: var(--touch-min, 44px);
-    padding-inline: var(--space-4, 1rem);
+    gap: 0.4ch;
+    min-height: var(--touch-min);
     font-weight: 600;
-    color: var(--color-text, #18181b);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-    background: var(--color-surface, #ffffff);
-    border: 1px solid var(--color-border, #e4e4e7);
-    border-radius: 8px;
-  }
-
-  .link-chip:hover {
-    color: var(--color-accent-hover, #172554);
-    border-color: var(--color-accent, #1e40af);
-    text-decoration-thickness: 2px;
   }
 
   .post :global(.hero-img) {
     width: 100%;
     height: auto;
-    margin-block: var(--space-6, 2rem);
-    border-radius: 8px;
+    margin-block: var(--space-6);
+    border: 1px solid var(--color-border);
   }
 
   /* Prose: same measure, size and leading as the About article. */
   .post-body {
-    max-width: var(--measure, 65ch);
-    font-size: var(--fs-body, 1rem);
-    line-height: var(--lh-body, 1.6);
+    max-width: var(--measure);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    counter-reset: sec fig;
   }
 
   .post-body :global(p) {
-    margin: 0 0 var(--space-5, 1.5rem);
+    margin: 0 0 var(--space-5);
   }
 
   .post-body :global(h2) {
-    font-size: var(--fs-h2, clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem));
-    margin: var(--space-7, 3rem) 0 var(--space-4, 1rem);
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    counter-increment: sec;
+    scroll-margin-top: var(--space-5);
+    font-size: var(--fs-h2);
+    margin: var(--space-7) 0 var(--space-4);
+  }
+
+  .post-body :global(h2::before) {
+    content: counter(sec);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-accent);
+    min-width: 1.25rem;
+  }
+
+  .post-body :global(h3),
+  .post-body :global(h4) {
+    scroll-margin-top: var(--space-5);
+    margin: var(--space-6) 0 var(--space-3);
   }
 
   .post-body :global(a) {
-    color: var(--color-accent, #1e40af);
+    color: var(--color-accent);
     text-underline-offset: 3px;
   }
 
   .post-body :global(a:hover) {
-    color: var(--color-accent-hover, #172554);
+    color: var(--color-accent-hover);
   }
 
   .post-body :global(strong) {
@@ -177,30 +187,114 @@ const dateLabel = project.data.date.toLocaleDateString('en-US', {
   }
 
   .post-body :global(code) {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.9em;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
     padding: 0.1em 0.3em;
-    background: var(--color-surface, #ffffff);
-    border: 1px solid var(--color-border, #e4e4e7);
-    border-radius: 4px;
+    background: var(--color-rule-soft);
   }
 
   .post-body :global(img) {
     width: 100%;
     height: auto;
-    border-radius: 8px;
+    border: 1px solid var(--color-border);
   }
 
   /* Figures: an image alone in a paragraph, then an italic-only caption paragraph. */
   .post-body :global(p:has(> img)) {
-    margin-block-end: var(--space-2, 0.5rem);
+    margin-block-end: var(--space-2);
+    counter-increment: fig;
   }
 
   .post-body :global(p:has(> img) + p > em:only-child) {
     display: block;
     font-style: normal;
-    font-size: var(--fs-small, 0.875rem);
-    color: var(--color-muted, #52525b);
+    font-size: var(--fs-small);
+    color: var(--color-muted);
+  }
+
+  .post-body :global(p:has(> img) + p > em:only-child::before) {
+    content: 'Fig. ' counter(fig) '  ';
+    white-space: pre;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  .toc {
+    display: none;
+  }
+
+  /* Wide screens: the article breaks out of the 48rem container (negative
+     inline margins centre a 62rem box on the narrower <main>) and gains a
+     sticky contents column beside the prose. */
+  @media (min-width: 68.75rem) {
+    .post.has-toc {
+      width: 62rem;
+      margin-inline: calc((100% - 62rem) / 2);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 12rem;
+      column-gap: var(--space-7);
+      align-items: start;
+    }
+
+    .post.has-toc > :not(.toc) {
+      grid-column: 1;
+    }
+
+    .toc {
+      display: block;
+      grid-column: 2;
+      grid-row: 1 / span 3;
+      position: sticky;
+      top: var(--space-4);
+      margin-block-start: var(--space-3);
+      font-size: var(--fs-small);
+    }
+
+    .toc-label {
+      margin: 0;
+      padding-top: 0.45rem;
+      border-top: 1px solid var(--color-text);
+      font-family: var(--font-mono);
+      font-size: var(--fs-small);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .toc ol {
+      list-style: none;
+      margin: var(--space-2) 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      counter-reset: t;
+    }
+
+    .toc li {
+      display: flex;
+      gap: var(--space-2);
+      counter-increment: t;
+    }
+
+    .toc li::before {
+      content: counter(t);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      min-width: 1rem;
+      padding-top: 0.1rem;
+    }
+
+    .toc a {
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      text-decoration: underline;
+      text-decoration-color: var(--color-accent);
+    }
   }
 
   .visually-hidden {
