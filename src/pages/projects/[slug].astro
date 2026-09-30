@@ -32,6 +32,8 @@ const minutes = Math.max(1, Math.ceil((project.body ?? '').split(/\s+/).filter(B
 const stack = project.data.tags.map((tag) => tag.toLowerCase()).join(' / ');
 const liveUrl = project.data.liveUrl;
 const liveHost = liveUrl ? new URL(liveUrl).hostname : undefined;
+// Break the host only after dots: every segment but the last is followed by <wbr>.
+const hostParts = liveHost ? liveHost.split('.') : [];
 ---
 
 <BaseLayout>
@@ -56,7 +58,14 @@ const liveHost = liveUrl ? new URL(liveUrl).hostname : undefined;
               <th scope="row">Live</th>
               <td>
                 <a class="live" href={liveUrl} target="_blank" rel="noopener noreferrer">
-                  {liveHost} <span aria-hidden="true">↗</span>
+                  {hostParts.slice(0, -1).map((part) => (
+                    <Fragment>
+                      {part}.<wbr />
+                    </Fragment>
+                  ))}
+                  <span class="nowrap">
+                    {hostParts.at(-1)}&nbsp;<span aria-hidden="true">↗</span>
+                  </span>
                   <span class="visually-hidden"> (opens in new tab)</span>
                 </a>
               </td>
@@ -123,12 +132,14 @@ const liveHost = liveUrl ? new URL(liveUrl).hostname : undefined;
   }
 
   .live {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4ch;
+    display: inline-block;
+    padding-block: 0.4rem;
     min-height: var(--touch-min);
     font-weight: 600;
-    overflow-wrap: anywhere;
+  }
+
+  .nowrap {
+    white-space: nowrap;
   }
 
   .post :global(.hero-img) {
@@ -227,16 +238,15 @@ const liveHost = liveUrl ? new URL(liveUrl).hostname : undefined;
     display: none;
   }
 
-  /* Wide screens: the article breaks out of the 48rem container (negative
-     inline margins centre a 62rem box on the narrower <main>) and gains a
-     sticky contents column beside the prose. */
-  @media (min-width: 68.75rem) {
+  /* Wide screens: column 1 stays exactly as wide as <main>; only the sticky
+     contents aside hangs into the right margin. <main> is ~45.5rem and
+     centred, so the 15rem aside needs a 80rem viewport to stay on screen. */
+  @media (min-width: 80rem) {
     .post.has-toc {
-      width: 62rem;
-      margin-inline: calc((100% - 62rem) / 2);
       display: grid;
       grid-template-columns: minmax(0, 1fr) 12rem;
-      column-gap: var(--space-7);
+      column-gap: 3rem;
+      margin-inline-end: calc(-1 * (12rem + 3rem));
       align-items: start;
     }
 
