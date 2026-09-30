@@ -6,25 +6,26 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-30
+
 ### Added
 
 - Dark mode that follows the system color-scheme setting.
 - Project write-ups show a sticky, numbered contents list beside the text on wide screens.
 
-### Security
-
-- Updated the Wrangler deploy tooling (4.142 to 4.145) to pull in a patched `undici`, fixing one high and two moderate advisories. The built site is unchanged.
-
 ### Changed
 
-- New type system and palette: IBM Plex Sans Condensed headings, IBM Plex Mono for code, and a paper, ink, and green accent color scheme.
+- New type system and palette: IBM Plex Sans Condensed headings, IBM Plex Mono for dates, labels, and code, and a paper, ink, and green accent color scheme.
 - Header is now a condensed wordmark with lowercase mono navigation; the current section shows a filled LED marker.
 - Projects page is now a ledger: rows grouped by year with date, stack line, text-link actions, and a square-cornered thumbnail.
 - Home page is now a datasheet: large name, one-line role, a specifications table with GitHub, LinkedIn, and About links, and the three newest projects. The icon link chips are gone.
 - Project write-ups now follow the datasheet layout: a details table (published date with reading time, stack, live link), numbered sections and figure captions, and square-cornered images.
 - About page gains a specifications table (education, location, favorite language, off the clock) and the 404 page is now an error-code entry with text links home and to Projects.
-- The highlight behind the home role line is stronger in dark mode.
 - Footer is now a single mono copyright line under a hairline rule.
+
+### Security
+
+- Updated the Wrangler deploy tooling (4.142 to 4.145) to pull in a patched `undici`, fixing one high and two moderate advisories. The built site is unchanged.
 
 ## [1.1.1] - 2026-09-29
 
