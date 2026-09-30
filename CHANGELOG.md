@@ -24,7 +24,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 - Project write-ups now follow the datasheet layout: a details table (published date with reading time, stack, live link), numbered sections and figure captions, and square-cornered images.
 - About page gains a specifications table (education, location, favorite language, off the clock) and the 404 page is now an error-code entry with text links home and to Projects.
 - The highlight behind the home role line is stronger in dark mode.
-- Footer is now a revision block showing the copyright and the site version.
+- Footer is now a single mono copyright line under a hairline rule.
 
 ## [1.1.1] - 2026-09-29
 
