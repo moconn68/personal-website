@@ -1,24 +1,24 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  // Static-assets-only Worker (PRD DEP-8). There is deliberately NO "main":
-  // no Worker script, no @astrojs/cloudflare adapter, no server runtime (NF-6).
+  // Static-assets-only Worker. There is deliberately NO "main": no Worker
+  // script, no @astrojs/cloudflare adapter, no server runtime.
   "name": "www",
   "compatibility_date": "2026-09-27",
-  // Canonical host https://www.mattoconn.workers.dev (PRD DEP-5).
+  // Canonical host is https://www.mattoconn.workers.dev
   "workers_dev": true,
-  // Preview/Version URLs stay on; dist/_headers noindexes all of them (§10.1).
+  // Preview/Version URLs stay on; dist/_headers noindexes all of them.
   "preview_urls": true,
   "assets": {
     "directory": "./dist",
-    // Unmatched URLs serve dist/404.html with status 404 (T-11's page).
+    // Unmatched URLs serve dist/404.html with status 404.
     // Without this, Workers returns a bare 404 and the custom page never shows.
     "not_found_handling": "404-page",
     // Default, stated explicitly: /about -> /about/ redirect, matching
-    // trailingSlash: 'always' and build.format: 'directory' (R8).
+    // trailingSlash: 'always' and build.format: 'directory'.
     "html_handling": "auto-trailing-slash"
   },
   // Required for `npx wrangler preview`, the non-production deploy command
-  // Workers Builds runs (tech design §10.3 step 4). Wrangler refuses to run
-  // that command without this block even though it needs no settings here.
+  // Workers Builds runs. Wrangler refuses to run that command without this
+  // block even though it needs no settings here.
   "previews": {}
 }

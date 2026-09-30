@@ -6,10 +6,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 
 ## [1.0.0] - 2026-09-27
 
-First public release of the personal identity hub for Matthew O'Connell. All 30
-tickets in `projects/initial-site/tickets/tickets.md` (T-1 through T-30) are
-complete. See `projects/initial-site/releases/release-1.0.0.md` for the full
-release notes.
+First public release of the personal identity hub for Matthew O'Connell.
 
 ### Added
 
@@ -39,21 +36,19 @@ release notes.
   `https://www.mattoconn.workers.dev`.
 - Extensibility proven live: a stub section can be added as a content file
   plus a template component with zero changes to nav/layout/sitemap/schema
-  code (T-22).
+  code.
 
 ### Removed
 
 - Résumé surface (page, PDF, `ProfilePage` JSON-LD, download CTA) — retired
-  per PRD v1.5 (OQ-7) before the first public deploy. The owner routes résumé
-  depth through LinkedIn instead. Tickets T-9, T-14, T-24 are tombstoned;
-  T-25 through T-28 performed the removal and post-removal regression pass.
+  before the first public deploy. The owner routes résumé depth through
+  LinkedIn instead.
 
 ### Changed
 
 - Deployment platform corrected from Cloudflare Pages to Cloudflare Workers
-  static assets (PRD v1.6) after Pages proved unavailable for new projects;
-  canonical host retargeted from `mattoconn.pages.dev` to
-  `www.mattoconn.workers.dev` (T-29, T-30).
+  static assets after Pages proved unavailable for new projects; canonical
+  host retargeted from `mattoconn.pages.dev` to `www.mattoconn.workers.dev`.
 
 ### Deployment
 
