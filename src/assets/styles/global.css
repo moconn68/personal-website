@@ -4,9 +4,9 @@
    this file is global only.
    @font-face blocks: self-hosted subsets, font-display: swap. */
 
-/* Self-hosted subsets of IBM Plex Sans (see scripts/subset-fonts.mjs and
+/* Self-hosted subsets of IBM Plex Sans, Sans Condensed and Mono (see scripts/subset-fonts.mjs and
    scripts/font-src/OFL.txt for license + attribution). Served under the
-   'Site Sans' family name rather than 'IBM Plex Sans': the OFL reserves the
+   'Site Sans' / 'Site Display' / 'Site Mono' family names rather than 'IBM Plex': the OFL reserves the
    name "Plex" for the Copyright Holder's own (unmodified) distributions, and
    these files are subsetted derivatives.
    font-display: swap = content-first; system-ui fallbacks downstream
@@ -25,19 +25,46 @@
   font-display: swap;
   src: url('../fonts/site-sans-600.woff2') format('woff2');
 }
+@font-face {
+  font-family: 'Site Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/site-display-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Site Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/site-mono-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Site Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/site-mono-500.woff2') format('woff2');
+}
 
 :root {
-  /* color palette */
-  --color-bg: #fafaf9;
-  --color-text: #18181b;
-  --color-muted: #52525b;
-  --color-accent: #1e40af;
-  --color-accent-hover: #172554;
-  --color-border: #e4e4e7;
-  --color-surface: #ffffff;
+  color-scheme: light dark;
+
+  /* color palette (datasheet): paper / ink / signal green */
+  --color-bg: #f3f4f1; /* paper */
+  --color-surface: #fbfbf9; /* sheet */
+  --color-text: #15181a; /* ink */
+  --color-muted: #565c58;
+  --color-border: #c9cdc6; /* rule */
+  --color-rule-soft: #e1e4de;
+  --color-accent: #1b6440; /* signal */
+  --color-accent-hover: #14502f;
+  --color-led: #2fa36b; /* decorative indicator only, never text */
 
   /* typography scale */
   --font-sans: 'Site Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Site Display', 'IBM Plex Sans Condensed', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Site Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --fs-hero: clamp(2rem, 1.5rem + 2.6vw, 3.25rem);
   --fs-h2: clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem);
   --fs-lead: clamp(1.0625rem, 1.0rem + 0.4vw, 1.25rem);
@@ -62,6 +89,20 @@
   --touch-min: 44px;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #131614;
+    --color-surface: #191d1a;
+    --color-text: #e6e9e4;
+    --color-muted: #9aa39d;
+    --color-border: #3a403c;
+    --color-rule-soft: #262b28;
+    --color-accent: #86c9a0;
+    --color-accent-hover: #a8dcbb;
+    --color-led: #4cc584;
+  }
+}
+
 /* --- minimal reset --- */
 
 *,
@@ -77,11 +118,11 @@ html {
 
 body {
   margin: 0;
-  font-family: var(--font-sans, 'Site Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
-  font-size: var(--fs-body, 1rem);
-  line-height: var(--lh-body, 1.6);
-  color: var(--color-text, #18181b);
-  background: var(--color-bg, #fafaf9);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 img,
@@ -91,7 +132,7 @@ svg {
   height: auto;
 }
 
-/* Heading baseline: weight 600, zero margin, default leading.
+/* Heading baseline: display face, weight 700, zero margin, default leading.
    Templates own the size tokens (--fs-hero / --fs-h2) and per-heading leading. */
 h1,
 h2,
@@ -100,8 +141,27 @@ h4,
 h5,
 h6 {
   margin: 0;
-  font-weight: 600;
-  line-height: var(--lh-h2, 1.2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: var(--lh-h2);
+  text-wrap: balance;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
 }
 
 /* --- accessibility baseline --- */
@@ -115,7 +175,7 @@ button:focus,
 button:focus-visible,
 [tabindex]:not([tabindex='-1']):focus,
 [tabindex]:not([tabindex='-1']):focus-visible {
-  outline: 2px solid var(--color-accent, #1e40af);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 

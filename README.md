@@ -20,7 +20,7 @@ Requires Node `>=22.12.0` (pinned in `.node-version`).
 | `npm run preview` | Serves the built `dist/` locally. |
 | `npm run check` | Type-checks `.astro` and `.ts` files with `astro check`. |
 | `npm run verify` | Static regression gate over `dist/` (`scripts/verify-static.mjs`). Fails on functional JavaScript, third-party asset origins, missing required outputs (`404.html`, `robots.txt`, sitemaps), or residue of retired routes. Run it after `npm run build`. |
-| `npm run fonts:subset` | Subsets the vendored IBM Plex Sans TTFs in `scripts/font-src/` to the glyphs used by the built pages and writes WOFF2 files to `src/assets/fonts/`. Not part of the build; run `npm run build` first and re-run whenever copy changes. |
+| `npm run fonts:subset` | Subsets the vendored IBM Plex (Sans, Sans Condensed, Mono) TTFs in `scripts/font-src/` to the glyphs used by the built pages and writes WOFF2 files to `src/assets/fonts/`. Not part of the build; run `npm run build` first and re-run whenever copy changes. |
 
 ## Environment Variables
 

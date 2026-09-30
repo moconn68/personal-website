@@ -1,4 +1,4 @@
-// One-shot: subset the vendored IBM Plex Sans TTFs to the glyphs the site
+// One-shot: subset the vendored IBM Plex (Sans, Sans Condensed, Mono) TTFs to the glyphs the site
 // actually renders, emit WOFF2 into src/assets/fonts under the pinned names the
 // global.css @font-face rules reference. NOT part of the build — run manually,
 // and re-run whenever copy changes, after rebuilding:
@@ -15,8 +15,8 @@
 //
 // Output filenames avoid "plex": the OFL reserves the name "Plex" for the
 // Copyright Holder's own distributions (clause 3), and these are modified
-// (subsetted) derivatives served under the 'Site Sans' family name in
-// global.css. Attribution to IBM Plex Sans stays in this comment, the OFL
+// (subsetted) derivatives served under the 'Site Sans', 'Site Display' and
+// 'Site Mono' family names in global.css. Attribution to IBM Plex stays in this comment, the OFL
 // file, and the README.
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -29,6 +29,9 @@ const DIST_DIR = resolve(import.meta.dirname, '../dist');
 const pinnedOutputs = {
   'IBMPlexSans-Regular.ttf': 'site-sans-400.woff2',
   'IBMPlexSans-SemiBold.ttf': 'site-sans-600.woff2',
+  'IBMPlexSansCondensed-Bold.ttf': 'site-display-700.woff2',
+  'IBMPlexMono-Regular.ttf': 'site-mono-400.woff2',
+  'IBMPlexMono-Medium.ttf': 'site-mono-500.woff2',
 };
 
 // Every build emits the home page; its absence means dist/ is not a complete build.
@@ -55,6 +58,10 @@ const REDUNDANCY = [
   '“', // “ left double quotation mark
   '”', // ” right double quotation mark
   '…', // … horizontal ellipsis
+  '→', // → rightwards arrow
+  '←', // ← leftwards arrow
+  '↗', // ↗ north east arrow
+  '·', // · middle dot
 ].join('');
 
 const NAMED_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };

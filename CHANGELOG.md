@@ -6,6 +6,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 
 ## [Unreleased]
 
+### Added
+
+- Dark mode that follows the system color-scheme setting.
+
+### Changed
+
+- New type system and palette: IBM Plex Sans Condensed headings, IBM Plex Mono for code, and a paper, ink, and green accent color scheme.
+
 ## [1.1.1] - 2026-09-29
 
 ### Fixed
