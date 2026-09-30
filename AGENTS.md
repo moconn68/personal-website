@@ -8,6 +8,22 @@ astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
+## Changelog and Versioning
+
+`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/). `package.json`'s `version` and the git tags track the latest release.
+
+- **Record changes as you go.** Any commit that changes what visitors or crawlers see adds a bullet under `## [Unreleased]` at the top of `CHANGELOG.md`, in the same commit, grouped under `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, or `Security`. That covers pages, content, navigation, styles, SEO and structured data, headers, and deploy behavior. Internal-only work (refactors, tests, tooling, docs, agent files) needs no entry unless it changes the built output.
+- **Pick the version by public impact:**
+  - MAJOR: removes or renames a public URL, or restructures existing pages in a way that breaks links or bookmarks.
+  - MINOR: adds something visitors can see, such as a new page, section, feature, or project write-up.
+  - PATCH: fixes, copy edits, style tweaks, and dependency updates with no new surface.
+- **Release with every production push.** Pushing to `main` deploys to production, so never leave shipped changes under `Unreleased`. To cut a release:
+  1. Rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` and add a fresh empty `## [Unreleased]` above it.
+  2. Run `npm version X.Y.Z --no-git-tag-version` to bump `package.json` and `package-lock.json`.
+  3. Commit as `chore(release): vX.Y.Z`.
+  4. Tag it with `git tag -a vX.Y.Z -m "vX.Y.Z"`.
+  5. Push the commit and tag together with `git push origin main --follow-tags`.
+
 ## Documentation
 
 Full documentation: https://docs.astro.build
