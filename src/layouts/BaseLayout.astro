@@ -10,6 +10,7 @@
 import Nav from '../components/Nav.astro';
 import { getSections } from '../config/sections';
 import '../assets/styles/global.css';
+import { version } from '../../package.json';
 // Hashed URLs via ?url match the @font-face url() in global.css exactly.
 import font400 from '../assets/fonts/site-sans-400.woff2?url';
 import fontDisplay700 from '../assets/fonts/site-display-700.woff2?url';
@@ -45,6 +46,7 @@ const year = new Date().getFullYear();
     </main>
     <footer>
       <p>© {year} {home.data.title}</p>
+      <p>Rev {version}</p>
     </footer>
   </body>
 </html>
@@ -70,26 +72,35 @@ const year = new Date().getFullYear();
     top: var(--gutter);
   }
 
-  /* Container constraint: centered at --container with
-     gutter-side padding; 375px floor with no horizontal scroll. */
+  /* Container constraint: centered, content width = --container minus gutters,
+     so header/footer borders span exactly the content column. */
   header,
   main,
   footer {
-    max-width: var(--container);
+    width: min(100% - 2 * var(--gutter), var(--container) - 2 * var(--gutter));
     margin-inline: auto;
-    padding-inline: var(--gutter);
   }
 
-  /* Footer: one muted small line, --space-6 above / --space-4 below,
-     left-aligned to match content alignment. */
+  header {
+    border-bottom: 2px solid var(--color-text);
+  }
+
+  /* Footer: revision block, mono, muted, rule above; copyright left, revision right. */
   footer {
-    padding-block-start: var(--space-6);
-    padding-block-end: var(--space-4);
+    margin-block-start: var(--space-7);
+    border-top: 1px solid var(--color-border);
+    padding-block: var(--space-3) var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-5);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
   }
 
   footer p {
     margin: 0;
-    font-size: var(--fs-small);
-    color: var(--color-muted);
   }
 </style>

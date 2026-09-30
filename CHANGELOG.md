@@ -13,6 +13,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 ### Changed
 
 - New type system and palette: IBM Plex Sans Condensed headings, IBM Plex Mono for code, and a paper, ink, and green accent color scheme.
+- Header is now a condensed wordmark with lowercase mono navigation; the current section shows a filled LED marker.
+- Footer is now a revision block showing the copyright and the site version.
 
 ## [1.1.1] - 2026-09-29
 
