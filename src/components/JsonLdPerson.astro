@@ -1,10 +1,8 @@
 ---
 // Person JSON-LD data block — rendered at the TOP of the Home template body
 // (inside <main>), NOT in <head> (head-placement would force per-template wiring
-// into the route). Crawlers parse JSON-LD anywhere in the document. This
-// <script> is a DATA block, not client-side JavaScript — the static-output gate
-// must exempt type="application/ld+json". is:inline guarantees Astro leaves the
-// block untouched; set:html emits raw JSON, so every '<' is escaped to <
+// into the route). Crawlers parse JSON-LD anywhere in the document. is:inline
+// guarantees Astro leaves the block untouched; set:html emits raw JSON, so every '<' is escaped to <
 // to keep a script end tag in any string value from closing the block early.
 // (Deliberately not spelling that end tag out literally in this comment —
 // Vite's dependency scanner treats it as real markup even inside a comment.)

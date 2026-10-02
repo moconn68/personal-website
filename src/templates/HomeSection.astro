@@ -5,7 +5,7 @@
 // (GitHub/LinkedIn from frontmatter, About via sectionPath()), and the newest
 // projects. Every link is registry- or frontmatter-derived, never a literal path.
 // `description` is the meta description only and is not rendered.
-// Zero client JS: the only <script> is the JsonLdPerson data block.
+// The only <script> is the JsonLdPerson data block.
 import { render } from 'astro:content';
 import { sectionPath, type SectionEntry } from '../config/sections';
 import { getProjects, projectPath } from '../config/projects';

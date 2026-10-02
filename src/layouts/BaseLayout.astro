@@ -3,8 +3,7 @@
 // (<header>/<nav>/<main>/<footer>), a named head slot for per-route SEO
 // content (filled by the Seo component), and a default body slot carrying the
 // section template. The footer copyright name is read from the registry home
-// entry — never hardcoded. Zero client JS: no executable script tags, no
-// event-handler attributes, no style= attributes. Styling lives in the scoped
+// entry — never hardcoded. No style= attributes. Styling lives in the scoped
 // block below plus src/assets/styles/global.css tokens.
 // No `path` prop, no props to Nav — Nav reads Astro.url.pathname itself.
 import Nav from '../components/Nav.astro';

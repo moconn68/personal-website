@@ -5,8 +5,8 @@
 // single slug→URL mapping (home → '/', others → '/{slug}/' with trailing
 // slash) — so nav hrefs are byte-identical with canonical/sitemap URLs.
 // Zero hardcoded section paths: removing a registry entry removes its nav link.
-// Zero client JS: no executable tags, no event-handler attributes, no style=
-// attributes, no inline styles — all styling lives in the scoped block below.
+// No style= attributes or inline styles — all styling lives in the scoped
+// block below.
 import { getSections, sectionPath, type SectionEntry } from '../config/sections';
 
 const sections: SectionEntry[] = await getSections();

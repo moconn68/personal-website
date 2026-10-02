@@ -6,10 +6,6 @@
 //      from an env read that could disagree with it: the robots.txt Sitemap:
 //      line sets it, and every sitemap <loc> plus the home page canonical must
 //      share it exactly (scheme included), so a mixed-host build fails here.
-//   1. Functional-JS markers. Any <script> with src=, or a non-empty inline
-//      body that isn't type="application/ld+json" (data block), any
-//      event-handler attribute (onclick=, onload=, ...) on any tag, and any
-//      .js/.mjs/.cjs file emitted into dist/.
 //   2. Third-party origin. In load-bearing HTML attrs (src/srcset/href/poster/
 //      action, quoted or not), CSS url() references (in <style> blocks, style=""
 //      attributes and .css files) and CSS @import strings, any absolute or
@@ -156,42 +152,6 @@ for (const file of htmlFiles) {
 
 if (failures.length === ORIGIN_RULE_BASELINE) {
   pass(`canonical origin: robots.txt, ${locCount} sitemap URL(s) and canonicals agree on ${SITE_ORIGIN}`);
-}
-
-// ---- Rule 1: functional-JS markers -----------------------------------------
-
-const SCRIPT = /<\s*script\b([^>]*)>([\s\S]*?)<\/\s*script\s*>/gi;
-const HAS_SRC = /\bsrc\s*=/i;
-const TYPE_ATTR = /\btype\s*=\s*["']?([^"'\s>]+)/i;
-const EVENT_HANDLER = /^on[a-z]+$/;
-
-for (const file of files.filter((f) => /\.[mc]?js$/i.test(f))) {
-  fail(`${file}: JavaScript file emitted into dist/`);
-}
-
-for (const file of htmlFiles) {
-  const html = readFileSync(file, 'utf8');
-
-  let m;
-  SCRIPT.lastIndex = 0;
-  while ((m = SCRIPT.exec(html))) {
-    const attrs = m[1];
-    const body = m[2];
-    if (HAS_SRC.test(attrs)) {
-      fail(`${file}: <script> with src= (client JS file)`);
-      continue;
-    }
-    const type = TYPE_ATTR.exec(attrs)?.[1] ?? '';
-    if (body.trim() !== '' && type.toLowerCase() !== 'application/ld+json') {
-      fail(`${file}: inline <script> body without type="application/ld+json"`);
-    }
-  }
-
-  for (const { tag, attrs } of openTags(html)) {
-    for (const [name] of attrs) {
-      if (EVENT_HANDLER.test(name)) fail(`${file}: <${tag}> event-handler attribute ${name}`);
-    }
-  }
 }
 
 // ---- Rule 2: third-party origins -------------------------------------------
@@ -359,8 +319,8 @@ for (const [file, content] of contents) {
   }
 }
 
-// Quotes around the type value are optional here exactly as they are in rule 1's
-// TYPE_ATTR, so a block rule 1 exempts as data is never invisible to 4c/4d.
+// Quotes around the type value are optional, so an unquoted type attribute
+// never hides a block from 4c/4d.
 const LD_JSON =
   /<\s*script\b[^>]*\btype\s*=\s*["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/\s*script\s*>/gi;
 
