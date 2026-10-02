@@ -32,6 +32,8 @@ const year = new Date().getFullYear();
     <link rel="preload" href={fontDisplay700} as="font" type="font/woff2" crossorigin />
     {/* Per-route <title>/meta/canonical land here via the head slot (Seo). */}
     <slot name="head" />
+    {/* Cloudflare Web Analytics: dashboard-only traffic stats, renders nothing. */}
+    <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "06d9a321b915474b9b390046adb6f2a7"}'></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>

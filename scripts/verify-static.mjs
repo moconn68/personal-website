@@ -12,7 +12,8 @@
 //      protocol-relative URL whose origin isn't SITE_ORIGIN fails; comparing the
 //      full origin also catches http:// mixed content. <a href> anchors are
 //      exempt (outbound links are a feature); JSON-LD lives in exempted data
-//      blocks and is never fetched.
+//      blocks and is never fetched. <script src> may also load from
+//      SCRIPT_ORIGINS (the Cloudflare Web Analytics beacon).
 //   3. Presence asserts: 404.html, robots.txt and both sitemap files exist.
 //   4. No-residue asserts: the retired route must stay retired — not as a file,
 //      not as a link, not as a JSON-LD node type, and not as dead _headers
@@ -158,6 +159,7 @@ if (failures.length === ORIGIN_RULE_BASELINE) {
 
 const ORIGIN_FAILURE_BASELINE = failures.length; // so only rule 2 drives its own PASS line
 const URL_ATTRS = new Set(['src', 'srcset', 'href', 'poster', 'action']);
+const SCRIPT_ORIGINS = new Set(['https://static.cloudflareinsights.com']);
 const CSS_URL = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 const CSS_IMPORT = /@import\s+(['"])(.*?)\1/gi; // @import url(...) is caught by CSS_URL
 
@@ -198,6 +200,7 @@ for (const file of htmlFiles) {
       if (tag === 'a' && name === 'href') continue; // outbound links are a feature
       for (const candidate of name === 'srcset' ? value.split(',') : [value]) {
         const origin = foreignOrigin(candidate);
+        if (tag === 'script' && name === 'src' && SCRIPT_ORIGINS.has(origin)) continue;
         if (origin) fail(`${file}: <${tag} ${name}> → ${origin}`);
       }
     }
