@@ -6,6 +6,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning fol
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-01
+
 ### Added
 
 - Cloudflare Web Analytics beacon on every page for privacy-friendly traffic stats (no cookies, nothing visible on the page).
