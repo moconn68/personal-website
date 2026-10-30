@@ -25,7 +25,7 @@
     "@astrojs/check": "^0.9.10",
     "subset-font": "^2.9.0",
     "typescript": "^6.0.3",
-    "wrangler": "^4.142.0"
+    "wrangler": "^4.156.0"
   },
   "private": true
 }
